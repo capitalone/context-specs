@@ -268,6 +268,7 @@ Run from your target project directory. Copies agent definitions (e.g.
 | | `/spec-validate` | Multi-agent consensus + expert review |
 | | `/implement-slice`, `/implement-mainspec` | Implement with Signal feedback, sequential or parallel |
 | **2 · Harness** | `/harness-init` | Guided setup of the local harness |
+| | `/define-loop` | Scaffold a new intent-sourced namespace loop on the same substrate |
 | | `/fix-local-checks` | Honest fixes for a failing pre-PR gate |
 | | `/address-feedback` | Triage and answer reviewer findings |
 | | `/learn` | Post-merge long-term memory update |

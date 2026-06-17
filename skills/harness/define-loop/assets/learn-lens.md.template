@@ -1,0 +1,22 @@
+# Learn lens — "__NS__" (PASSIVE / unused in v1)
+
+*This file is generated for forward-compatibility and is NOT read by anything yet.
+v1 of `/define-loop` does not modify the `learn` skill. When a later version makes
+`learn` namespace-aware, it will detect that a merge came from a `feature/__NS__/*`
+branch and load this lens as an **emphasis** over its normal routing — never as a
+replacement for it.*
+
+A lens is a **thin** prompt fragment, not a parallel ruleset (a fat lens would bloat
+`learn`'s context and rot — the opposite of the project's "keep context lean" rule).
+
+## Emphasis for merges from the __NS__ loop
+<One short paragraph: given that this merge came from a __NS__ work-item, what should
+`learn` pay extra attention to when reconciling memory? e.g. for a `bug` loop: "This
+was a defect — ask whether a lint or invariant, had it existed, would have prevented
+it; prefer drafting a checkable rule over adding prose." Keep it to a few sentences.>
+
+## Boundary (no self-learning on loops)
+`learn` writes namespace-INDEPENDENT knowledge only — the Expert, the base eager
+AGENTS.md, and lints. It never writes this loop's machinery (`loops/__NS__/`, the
+dispatcher, the oracle rubric). If `learn` notices loop-specific steering worth
+adding, it may *suggest* it in the learn PR prose for a human to place here.

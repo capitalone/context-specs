@@ -1,0 +1,58 @@
+# PRD template — the "__NS__" loop
+
+*The `/intent-__NS__` minter starts every work-item from this skeleton. It is the
+prose half of the contract (**why** + **what** "done" means); the companion
+`run-prd-test.sh` is the executable half (the oracle). Edit this template to shape
+how this loop's work-items read — including the `## Loop conventions` steering,
+which is THE place namespace behavior is encoded (there is no eager namespace
+memory; the agent learns "how to behave in this loop" from this section + the phase
+skills).*
+
+## Minimal skeleton (always)
+
+```markdown
+# PRD: <feature>
+
+## Loop conventions (__NS__)
+<The behavioral steering for this loop — what an agent working a __NS__ item must
+do differently from a plain feature build. e.g. for a `bug` loop: "Reproduce first
+with a failing check; make the smallest change that fixes it; do not expand scope
+beyond the repro." This rides in every work-item and is read by the whole chain.>
+
+## Why
+<The need, in user terms. Who is hurting and how. Not the solution.>
+
+## User story
+As a <user>, I can <observable action> so that <outcome>.
+
+## Definition of done
+`./prds/<feature>/run-prd-test.sh` exits 0:
+- <observable criterion 1 — what's true from outside when this is built>
+- <observable criterion 2>
+(Each bullet maps to a check in the runner. The runner is hard + judge-capable;
+the LLM-judge legs grade against `loops/__NS__/oracle.md`. Behavioral, not
+implementation-bound.)
+
+## Out of scope
+- <explicitly excluded thing — keeps the chain from drifting>
+
+## Constraints
+- <convention this must honor, sourced from the Expert>
+```
+
+## Optional blocks (add only when the conversation raises them)
+
+```markdown
+## Inputs / References
+- `prds/<feature>/<contract-or-fixture>` — <copied in because the runner needs it>
+
+## Non-functional requirements
+- <perf / latency / accessibility / security target, stated observably>
+```
+
+## Notes
+- **Definition of done bullets are behavioral.** Verifiable from outside, without
+  reading the implementation.
+- Keep `## Loop conventions` tight and namespace-specific. If a convention is
+  really project-wide (not loop-specific), it belongs in the Expert / AGENTS.md,
+  not here.

@@ -1,0 +1,84 @@
+---
+name: intent-__NS__
+description: Mint a "__NS__" work-item — a PRD plus a runnable oracle — for the __NS__ loop. Use to start a piece of __NS__ work (file it, scope it, kick off the __NS__ loop). Produces prds/<feature>/prd.md + an executable prds/<feature>/run-prd-test.sh on a __NS__/<author-slug>/<feature> branch. The human-attentive front of the __NS__ loop.
+---
+
+# intent-__NS__
+
+The **minter** for the `__NS__` loop. Same discipline as `/intent` (the prd minter),
+specialized for this namespace: it stamps the `__NS__/<author>/<feature>` branch
+(the loop's queue), starts the PRD from this loop's template, and authors an oracle
+that can shell out to this loop's judge rubric. Everything downstream
+(`/spec-planning`, `/spec-validate`, `/implement-mainspec`, `/address-feedback`)
+reads the same `prds/<feature>/` layout, so it is reused unchanged.
+
+Run a conversation that turns an idea into two coupled artifacts:
+- `prds/<feature>/prd.md` — the prose: **why** + **what** "done" means (started from
+  `loops/__NS__/prd-template.md`, including its `## Loop conventions` steering).
+- `prds/<feature>/run-prd-test.sh` — the executable oracle: hard + judge-capable.
+  Exits 0 when the item is done; LLM-judge legs grade against `loops/__NS__/oracle.md`.
+
+This is an **interactive** skill — a human is present. Explain as you go; they finish
+able to read and tweak both artifacts.
+
+## The discipline (embody, don't recite)
+- **Two coupled artifacts, born together.** Prose drifts; an exit code doesn't.
+- **Elicit outcomes, not solutions.** Surface the need and the observable outcome.
+- **"How would we know that's true?"** is the throughline — it yields a prose
+  criterion *and* a runner check at once.
+- **Behavior, not implementation.** Criteria test what's observable from outside.
+- **The runner is assembled from typed checks** — deterministic (cheap shell, runs
+  first), LLM-judge (graded against `loops/__NS__/oracle.md`), or project-native
+  tests — and keeps at least one **hard** check. See `references/runner-recipes.md`.
+- **"Failing for the right reason" is the proof.** See `references/right-reason.md`.
+- **Coordinator, not knowledge holder.** Constraints/conventions/prior art come from
+  the Expert (`.claude/skills/expert/`); with no Expert, scan the codebase directly.
+- **Transparent.** Explain → confirm → act → take feedback.
+
+## The guided flow
+0. **Preflight.** Clean working tree (ask to stash WIP). Derive author-slug from
+   `git config user.email` (before `@`). Load the Expert if present; else scan the
+   codebase directly. **Read `loops/__NS__/prd-template.md` and `loops/__NS__/oracle.md`
+   so you carry this loop's conventions and oracle bar into the conversation.**
+1. **Open Q&A.** Understand the need; elicit outcomes, not solutions. If invoked with
+   a seed (`/intent-__NS__ <text>`), start there but still dig for the *why*.
+2. **Surface external context.** Contracts, schemas, fixtures, repro steps, design
+   notes — note what exists and where; route it in step 5.
+3. **Decide-to-build gate.** Only when intent is clear: "Turn this into a __NS__
+   work-item?" Ending with no artifact is valid. If yes, pick a kebab-case `<feature>`.
+4. **Build prd.md + run-prd-test.sh.** Start the PRD from
+   `loops/__NS__/prd-template.md` (keep the `## Loop conventions` steering). Drive
+   every outcome through "how would we know that's true?". Draft the runner from
+   `references/runner-recipes.md`; wire any LLM-judge leg to grade against
+   `loops/__NS__/oracle.md`. **You draft the runner; the user reviews — never hand it
+   to them to author.**
+5. **Wire Inputs / References.** Copy anything the *runner* needs under
+   `prds/<feature>/` so it is self-contained; list each in the PRD.
+6. **Failing-for-the-right-reason loop.** `chmod +x` and run against today's code.
+   Confirm each check fails *because the behavior is absent* (`references/right-reason.md`).
+   Fix wrong-reason failures; iterate until every failure shape matches. Show the user.
+7. **Branch, commit, return** (with confirmation):
+   ```
+   git checkout -b __NS__/<author-slug>/<feature>   # from main
+   git add prds/<feature>/                           # prd.md, run-prd-test.sh, helpers
+   git commit -m "__NS__: <feature>"
+   git push -u origin __NS__/<author-slug>/<feature>
+   git checkout main                                 # return the user to main
+   ```
+   The branch *name* is the `__NS__` loop's queue — no marker file. The loop claims it
+   on its next tick by atomic rename to `feature/__NS__/<feature>`.
+
+## Output contract
+- **Invoked by:** a human (`/intent-__NS__`, optionally with a seed). Not the
+  dispatcher.
+- **Outputs:** `prds/<feature>/prd.md`, executable `prds/<feature>/run-prd-test.sh`,
+  plus any helper artifacts, all under `prds/<feature>/`.
+- **Completion signal:** the pushed `__NS__/<author-slug>/<feature>` branch.
+
+## Hard nevers
+- **Never merge, never push to `main`.** Humans steer at merge time.
+- **Never hand the runner to the human to author** — you draft, they review.
+- **Never commit a runner you haven't run** (the right-reason loop is required).
+- **Never leave the user on a branch other than `main`** at the end.
+- **Never bake implementation into the criteria** — test behavior, not call shapes.
+- **Never let a work-item ship with zero hard checks** — the oracle is hard.

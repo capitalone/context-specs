@@ -1,0 +1,35 @@
+# Oracle rubric — the "__NS__" loop's definition of done
+
+*Passive file. Read explicitly by each work-item's `run-prd-test.sh` when that
+runner shells out to an LLM-as-judge. Not auto-loaded, not injected. Edit it to
+tune what "done" means for this loop; an oracle-rubric edit should re-run the
+planted-event verification (define-loop's `references/verify-the-loop.md`) before
+it merges.*
+
+The loop's oracle is **hard, judge-capable, and sentinel-cached**: the dispatcher
+runs the work-item's runner and gates on exit 0; on first green it caches a
+committed sentinel so a non-deterministic judge isn't re-run every tick. There is
+**no "soft" advisory oracle** — advisory signal is the reviewer phase, downstream.
+
+A runner for this loop may mix:
+- **deterministic checks** (cheap shell — files, routes, build, grep; run first),
+- an **LLM-as-judge** graded against this rubric (runs on the residue),
+- **project-native tests**.
+
+Every work-item must keep at least one **hard** check (the baseline `local-checks`
+floor counts) so no item can pass on vibes alone.
+
+## What the judge sees
+<List the context the LLM-judge should be given for this namespace — e.g. the diff,
+the PRD's Definition of done, the relevant Expert shard, a fixture. Keep it focused;
+a judge with the right narrow context beats one drowning in the repo.>
+
+## Pass / fail criteria
+<The bar the judge grades against, in observable terms. Behavioral, not
+implementation-bound. e.g. for a `bug` loop: "the reported defect no longer
+reproduces under the documented steps, AND no unrelated behavior changed".>
+
+## Known-tricky cases
+<Failure modes the judge tends to get wrong for this namespace, with the right call
+spelled out — e.g. "a benign logging side-effect is NOT a regression; do not fail".
+These are where most oracle tuning lands over the loop's life.>

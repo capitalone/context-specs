@@ -1,0 +1,30 @@
+---
+name: __NS__-loop
+description: One tick of the "__NS__" namespace loop. Syncs this loop's infra worktree to main, then dispatches one skill per __NS__ branch. Run on an interval via /loop.
+---
+
+# __NS__-loop
+
+Run `./scripts/__NS__-tick.sh` from the `__NS__` loop's infra worktree root
+(`../<repo>-harness-ns-__NS__`) and report what it did.
+
+That is the entire skill. The intelligence is in the scripts — this exists only so
+`/loop` has a slash-command-shaped target. Do not do any feature work in this
+session; the scripts shell out to fresh `claude -p` subprocesses for all real work,
+which is what keeps this outer session's context from bloating across ticks.
+
+`__NS__-tick.sh` first force-syncs the infra worktree to a clean `origin/main` (so
+`__NS__-dispatch.sh`, its shared `harness-lib.sh`, and `.harness/env` are always
+current), then `exec`s `./scripts/__NS__-dispatch.sh` — the deterministic,
+HEAD-agnostic dispatcher. Never point `/loop` at the dispatcher directly, or
+loop-infrastructure updates merged to main won't reach the loop.
+
+This loop is independent of the build loop (`/poll-and-dispatch`) and the memory
+loop (`/learn-loop`); the three never block each other and coordinate only through
+git. Start it in its own session:
+
+```
+cd ../<repo>-harness-ns-__NS__
+claude
+/loop 5m /__NS__-loop
+```

@@ -1,0 +1,38 @@
+# The "__NS__" loop
+
+*Human-facing description of this namespace loop. (This is documentation, not
+config — nothing reads it. It exists so a person can understand the loop at a glance
+without reading the generated bash. There is deliberately no machine-read spec file.)*
+
+## What it is
+<One sentence: what kind of work this loop autonomously processes. e.g. "Turns a
+reported bug into a verified, minimal fix with a regression check.">
+
+## How work enters
+A human (or tool) runs `/intent-__NS__` to mint a work-item: a PRD +
+`run-prd-test.sh` committed on a `__NS__/<author>/<feature>` branch. That branch is
+the queue; the loop claims it by atomic rename to `feature/__NS__/<feature>`.
+
+## The pipeline (phases)
+<List the phases this loop runs, in order, with their retry caps. Default proven
+chain:>
+1. `/spec-planning` — PRD → mainspec + slices (cap 2)
+2. `/spec-validate` — multi-agent consensus on the plan (cap 2)
+3. `/implement-mainspec` — implement until the oracle is green (cap 3)
+4. `local-checks` — baseline hard floor (cap 2)
+5. open PR → `/address-feedback` reviewer loop (cap 5) → HUMAN_REVIEW on convergence
+
+## The oracle (definition of done)
+Hard, judge-capable, sentinel-cached. The per-work-item `run-prd-test.sh` must exit
+0; LLM-judge legs grade against `loops/__NS__/oracle.md`. See that file.
+
+## Where it runs
+Its own dedicated infra worktree `../<repo>-harness-ns-__NS__` (own flock), driven by
+`/loop 5m /__NS__-loop` in its own session. Independent of the build + memory loops.
+
+## Files that define this loop
+- `scripts/__NS__-dispatch.sh` — the dispatcher (state machine)
+- `scripts/__NS__-tick.sh` — the sync wrapper (`/loop` target)
+- `.claude/skills/__NS__-loop/SKILL.md` — the `/loop` shim
+- `.claude/skills/intent-__NS__/` — the minter
+- `loops/__NS__/` — this bundle: `prd-template.md`, `oracle.md`, `learn-lens.md`, `README.md`
