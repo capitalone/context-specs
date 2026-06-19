@@ -74,6 +74,10 @@ conversation so your discipline is grounded, not improvised:
   project can edit this to change the Q&A style without touching the flow.)*
 - `references/right-reason.md` — what counts as failing for the right reason, with
   examples. *(Hackable seam: the failing-test heuristic lives here.)*
+- `references/roadmap-awareness.md` — **optional**: how to read an upstream `/roadmap` bet
+  to ground the PRD's *why*, and the hard line that the bet's metric is rationale, never a
+  runner check. Only relevant when the user is working off a roadmap. *(Hackable seam: how
+  tightly a PRD couples to a bet.)*
 
 And the two artifact references when you reach the build:
 
@@ -94,6 +98,14 @@ Understand the need. Elicit outcomes, not solutions (P2). If invoked with a free
 seed (`/intent add a search page`), start from it but still dig for the *why*. Use the
 Expert to ground questions in how this project actually works. Follow
 `references/elicitation.md`.
+
+**Optional — roadmap grounding.** Ask whether this feature serves an upstream `/roadmap`
+bet. If so, the user passes the roadmap-home path **inline** (e.g. `/intent --roadmap
+../product-roadmap …`; there is no pointer file — `/intent` only reads it). Read the bet
+and let its *problem* and *target metric* sharpen the PRD's `## Why`. The bet's metric is
+**rationale only — never a check in `run-prd-test.sh`** (P4): the runner tests *built*, the
+metric tests *moved*, and `/evaluate-outcome` owns the latter. No roadmap → proceed exactly
+as normal. See `references/roadmap-awareness.md`.
 
 ### Step 2 — Surface external context
 Ask whether the user already has anything that should govern this feature: an API
@@ -140,8 +152,9 @@ harness will pick it up on its next tick.
 
 ## Invocation & output contract
 
-- **Invoked by:** a human (`/intent`, optionally with a free-text seed). Not the
-  dispatcher — this is the one human-in-the-loop skill.
+- **Invoked by:** a human (`/intent`, optionally with a free-text seed, and optionally
+  `--roadmap <path>` to ground the PRD in an upstream bet). Not the dispatcher — this is a
+  human-in-the-loop skill.
 - **Outputs (relative to repo root):** `prds/<feature>/prd.md`,
   `prds/<feature>/run-prd-test.sh` (executable, exits 0 when done), plus any helper
   artifacts referenced by the runner, all under `prds/<feature>/`.
@@ -168,3 +181,6 @@ first merge will create the Expert via `/learn`.
 - **Never commit a runner you haven't run.** The right-reason loop (Step 6) is required.
 - **Never leave the user on a branch other than `main`** at the end.
 - **Never bake implementation into the criteria** (P4) — test behavior, not call shapes.
+- **Never put a roadmap metric into the runner.** A bet's metric grounds the PRD's *why*
+  as rationale; it is measured by `/evaluate-outcome` post-merge, never checked by
+  `run-prd-test.sh`. The runner tests *built*, never *moved*.

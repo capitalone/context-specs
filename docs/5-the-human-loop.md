@@ -18,16 +18,22 @@ but you can't outsource your understanding."* It draws a sharp boundary:
   announce themselves — exactly where your understanding has to be load-bearing.
 
 The harness took the first category. The human loop is you, deliberately working
-the second. It has three phases, and they form a closed cycle:
+the second. It has four phases, and they form a closed cycle:
 
 ```
-   Understanding ──▶ Intent ──▶ [ the harness builds ] ──▶ Evaluate
-   build your model    express        Chapters 3 & 4        walk the result,
-   of the problem      what to                              run it, judge it,
-   space               build                               improve the context
-        ▲                                                        │
-        └──────────── evaluating deepens understanding ──────────┘
+   Understanding ─▶ Strategy ──▶ Intent ─▶ [ the harness builds ] ─▶ Evaluate
+   build your model  sharpen the  express      Chapters 3 & 4         walk it, run it,
+   of the problem    vision; pick what to                            judge it, and
+   space             metric + bet build                              measure the outcome
+        ▲                 ▲                                                │
+        │                 └────────── did the bet move the metric? ───────┤
+        └───────────────────── evaluating deepens understanding ──────────┘
 ```
+
+The middle two phases pair up as front-and-back bookends: **Strategy** sets a
+metric and a bet; **Evaluate** measures whether the bet moved it. **Intent**
+expresses one feature; **Evaluate** judges whether it was built right. Two
+expressions of intent at two altitudes, each with its own check.
 
 ## The two loops interlock
 
@@ -67,9 +73,70 @@ worth holding:
 - The **Expert** (Chapters 2 & 4) is per-project **code** memory, written to be
   read **by agents**.
 
-The payoff is direct: a richer model of the domain means a sharper `/intent`. You
+The payoff is direct: a richer model of the domain means a sharper strategy. You
 arrive at the next phase already understanding the concepts, the constraints, and
-the trade-offs — so the feature you ask for is the right one.
+the trade-offs — so the bet you place is the right one.
+
+## Strategy — `/roadmap` and `/evaluate-outcome`
+
+Understanding gives you a model of the problem space. Strategy is where you turn
+that model into a **direction with a way to know it's working.** This is the phase
+that keeps the whole loop out of the *build trap* — measuring success by features
+shipped rather than outcomes produced. A roadmap that's just a list of features
+with dates is the trap wearing a costume; the cure is to express direction as
+**bets on outcomes you can measure.**
+
+### `/roadmap` — sharpen the vision into a measurable bet
+
+[`/roadmap`](../skills/human-loop/roadmap/SKILL.md) is a human-attentive
+conversation, the upstream sibling of `/intent`. It produces a **roadmap home** —
+an `AGENTS.md` that teaches the taxonomy and folder conventions (written once; the
+folder tree is the map) over per-vision folders, each holding a few coupled things:
+
+- the **vision**, sharpened — narrative direction, the act of writing it tightens it;
+- the **strategic intent** — the chosen focus and its **lagging outcome** (the slow
+  metric: retention, revenue), with an **instrument** (where the number lives) and a
+  **baseline** taken by running the probe against the live world *right now*;
+- the **current bet** — one *problem*, stated as a falsifiable hypothesis that moves
+  a fast **leading** indicator believed to feed the lagging outcome, plus a loose
+  backlog of other problems. There is no single "North Star metric" to crown — a
+  vision runs on a small portfolio of leading and lagging signals.
+
+Its discipline is the mirror of `/intent`'s "failing for the right reason." Where
+the PRD runner forces *done is executable*, the roadmap forces *impact is
+measurable*: the conversation isn't finished until the metric has been read. A
+product owner who can name the metric, its instrument, and a baseline knows what
+they want; one who hands over a feature list and a deadline often doesn't. As with
+`/intent`, **ending with no artifact is a valid outcome** — sometimes you just
+needed to think the vision out loud.
+
+Two altitudes meet here, and keeping them apart is load-bearing: the **bet** is the
+unit of *outcome* (one metric, measured once it ships), and it decomposes into one
+**or many PRDs** — the unit of *output* (each with its own runner). `/roadmap`
+names the problem; it does **not** pre-slice it into features. That slicing is
+`/intent`'s job, done lazily, one bet at a time. The metric lives on the bet, never
+on a PRD — welding a lagging, real-world number onto a deterministic pre-merge
+runner would break the line the whole harness rests on.
+
+For a single-repo product the roadmap home is a `roadmap/` folder beside `prds/`;
+for a product spanning repos (a UI repo, an API repo) it is its **own repo**, above
+any one codebase — the same standalone shape as the Understanding wiki. Builds fan
+out per-repo through normal `/intent` PRDs; **outcomes converge** at one bet-level
+metric. The machine gains nothing to coordinate across repos — all cross-repo
+sequencing lives here, in the human loop.
+
+### `/evaluate-outcome` — measure whether the bet worked
+
+The back bookend, and the mirror of `/roadmap`. Once a bet has shipped end-to-end,
+[`/evaluate-outcome`](../skills/human-loop/evaluate-outcome/SKILL.md) **re-runs the
+probe** `/roadmap` authored — synthesize once, read many — appends the reading to an
+append-only log, and reads the **trajectory** against the hypothesis over the
+declared horizon. It is described more fully under Evaluate below; what matters
+here is that it closes the Strategy loop: its verdict (confirmed / flat /
+inconclusive / regressed) flows back to sharpen the next bet. This is the **measure**
+step that upgrades the whole human loop from *build → evaluate* to *build →
+**measure** → learn* — the part that proves a shipped feature actually mattered, not
+just that it was built.
 
 ## Intent — `/intent`
 
@@ -89,15 +156,20 @@ restating because it's where your thinking does its work:
   the moment.
 
 `/intent` is a *coordinator, not a knowledge holder* — the domain reasoning comes
-from the Expert. Your contribution is the understanding from the previous phase
-and the judgment about what's worth building. Confirm the PRD, and the machine
-takes it from there.
+from the Expert. Your contribution is the understanding and the bet from the
+previous phases, and the judgment about what's worth building. When the feature
+serves a roadmap bet, `/intent` can read that bet (you pass its path inline) and
+let the bet's problem and metric sharpen the PRD's *why* — but the metric stays
+rationale, never a runner check. Confirm the PRD, and the machine takes it from
+there.
 
-## Evaluate — `/evaluate-pr` and `/evaluate-sessions`
+## Evaluate — `/evaluate-pr`, `/evaluate-sessions`, and `/evaluate-outcome`
 
-The back bookend, and the mirror of `/intent`. The harness hands you a finished
-PR; evaluation is where you do the unverifiable work the machine couldn't. There
-are two skills, because there are two things to evaluate.
+The back bookend, and the mirror of `/intent` (and, for the third skill, of
+`/roadmap`). The harness hands you a finished PR; evaluation is where you do the
+unverifiable work the machine couldn't. There are three skills, because there are
+three things to evaluate: *what* was built, *how* it was built, and *whether it
+mattered*.
 
 ### `/evaluate-pr` — evaluate *what was built*
 
@@ -147,6 +219,27 @@ harness builds is a graded trial of your project's context, and every eval you
 capture makes the project a little better at building itself next time. You're
 not auditing one PR — you're **tuning the harness.**
 
+### `/evaluate-outcome` — evaluate *whether it mattered*
+
+The two skills above judge the PR. [`/evaluate-outcome`](../skills/human-loop/evaluate-outcome/SKILL.md)
+judges the **bet** — one altitude up, and weeks later. Once a bet has shipped
+end-to-end (which, for a multi-repo bet, only *you* can confirm), it re-runs the
+probe `/roadmap` authored, appends a reading, and reads the **trajectory** against
+the hypothesis over the declared horizon.
+
+Two disciplines make it honest. First, **never a single point**: a reading two days
+post-ship is noise — novelty spikes regress, the world is loud — so a blip is not an
+outcome; you read the *shape* across the horizon, or you keep sampling and say "too
+early." Second, **advisory, never a gate.** Unlike `run-prd-test.sh`, which the
+dispatcher will not merge past (Invariant 8), the metric is measured in the world,
+after merge, over time — the machine structurally *cannot* enforce it. This is the
+system's first deliberately **unenforceable** contract, and that's exactly right:
+the metric is the canonical *unverifiable* thing, so it belongs entirely to you. A
+flat or inconclusive verdict is a real, valuable result — the learning the next bet
+is built on — not a failure to dress up. The verdict flows back to `/roadmap`, and
+the loop's slowest, most important question — *did the thing we shipped actually
+move the outcome we cared about?* — finally has a home.
+
 ## Memory still has one write path
 
 Notice what evaluation does *not* do: it doesn't write memory directly. Whatever
@@ -158,10 +251,10 @@ branch and reach memory the same way: through a merge. The single write path of
 Chapter 4 holds. You may now *seed* memory deliberately; you still never bypass
 the door.
 
-## The three places you steer
+## Where you steer
 
-Across the whole system, you touch the machine at exactly three points — and
-every one of them is a phase of this loop:
+You touch the **machine** at exactly three points — and every one of them is a
+moment in this loop:
 
 | You... | Human-loop phase | What it does to the machine |
 |---|---|---|
@@ -169,15 +262,27 @@ every one of them is a phase of this loop:
 | Evaluate and merge a PR | **Evaluate** | ends the build; triggers `/learn` |
 | Unstick a STUCK feature | a forced detour into **Evaluate** | corrects the context, then merges |
 
-Three touchpoints. Everything between them is the machine. Everything *at* them
-is judgment — yours.
+The Strategy phase adds two more touchpoints — but they're a different *kind*, and
+the difference is the point. They steer your **direction**, and they do nothing to
+the machine at all:
+
+| You... | Human-loop phase | What it does |
+|---|---|---|
+| File a roadmap + bet, with a metric and a baseline | **Strategy** (`/roadmap`) | sets the direction and how you'll know it worked — the machine never reads it |
+| Judge whether a shipped bet moved its metric | close of **Strategy** (`/evaluate-outcome`) | reshapes the next bet — advisory, gates nothing |
+
+That second table is the *unenforceable* half on purpose. The metric is the
+canonical thing the machine can't verify — measured in the world, after merge, over
+time — so steering by it is entirely yours. Everything between all of these
+touchpoints is the machine. Everything *at* them is judgment — yours.
 
 ---
 
 So here's where we've arrived. The project plans, implements, verifies, and
-remembers on its own. You spend your time understanding the problem, expressing
-intent, and evaluating outcomes — and when you evaluate, you don't just approve
-work, you improve the thing that produced it.
+remembers on its own. You spend your time understanding the problem, setting a
+direction you can measure, expressing intent, and evaluating outcomes — and when
+you evaluate, you don't just approve work, you improve the thing that produced it
+and learn whether it moved the needle you set.
 
 That's not a new workflow bolted onto coding. It's a different relationship to
 your own project. Worth saying plainly, because it's the whole point.

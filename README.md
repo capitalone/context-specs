@@ -133,22 +133,28 @@ is the right thing to build, whether the abstraction is sound, whether it feels
 right.
 
 ```
-Understanding ──▶ Intent ──▶ [ the harness builds ] ──▶ Evaluate
-   /wiki-init      /intent                              /evaluate-pr
-                                                        /evaluate-sessions
+Understanding ─▶ Strategy ─▶ Intent ─▶ [ the harness builds ] ─▶ Evaluate
+   /wiki-init     /roadmap    /intent                            /evaluate-pr
+                                                                 /evaluate-sessions
+                                                                 /evaluate-outcome
 ```
 
 - **Understanding** ([`/wiki-init`](./skills/human-loop/wiki-init/SKILL.md)) —
   a Karpathy "LLM Wiki" that builds *your* model of the problem space, so you
-  arrive at Intent with sharper questions.
+  arrive at Strategy with sharper questions.
+- **Strategy** ([`/roadmap`](./skills/human-loop/roadmap/SKILL.md)) — sharpen the
+  vision into a **bet** on an outcome, with a metric, its instrument, and a
+  baseline read *now*. Forces *impact is measurable* the way the PRD runner forces
+  *done is executable* — the escape hatch from the build trap.
 - **Intent** ([`/intent`](./skills/human-loop/intent/SKILL.md)) — turn that
   understanding into a PRD plus a runnable definition of done.
 - **Evaluate** ([`/evaluate-pr`](./skills/human-loop/evaluate-pr/SKILL.md) +
-  [`/evaluate-sessions`](./skills/human-loop/evaluate-sessions/SKILL.md)) —
-  walk the change to build real understanding, *and* read the build trail to find
-  where the project's context served the agents or failed them. The flywheel:
-  *observe a trace → capture it as an eval → fix the context → it persists as a
-  regression test.*
+  [`/evaluate-sessions`](./skills/human-loop/evaluate-sessions/SKILL.md) +
+  [`/evaluate-outcome`](./skills/human-loop/evaluate-outcome/SKILL.md)) —
+  walk the change to build real understanding, read the build trail to find where
+  the project's context served the agents or failed them, *and* measure whether the
+  shipped bet actually moved its metric. The flywheel: *observe a trace → capture it
+  as an eval → fix the context → it persists as a regression test.*
 
 Your loop's output is the harness's input; the harness's output is your loop's
 input. When you evaluate, you don't just approve work — you improve the thing

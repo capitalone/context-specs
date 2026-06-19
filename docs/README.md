@@ -51,8 +51,8 @@ as you climb — but you can stop on any rung.
    the harness gets better every merge: long-term memory, the four destinations
    for a learned fact, and lints the agent cannot ship past.
 5. **[The human loop](./5-the-human-loop.md)** *(Layer 3)* — once the machine does
-   the typing, what's left is the part only you can do: Understanding → Intent →
-   Evaluate.
+   the typing, what's left is the part only you can do: Understanding → Strategy →
+   Intent → Evaluate.
 6. **[The mindset shift](./6-the-mindset-shift.md)** — the payoff. Your project is
    a harness now. Here's how the way you work changes.
 

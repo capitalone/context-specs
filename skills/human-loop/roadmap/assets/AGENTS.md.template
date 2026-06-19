@@ -1,0 +1,67 @@
+# Product Roadmap — orientation
+
+This is a **product strategy home**, written and read by the `/roadmap` and
+`/evaluate-outcome` skills. It is read-me-first: it explains the taxonomy and the folder
+conventions so that anyone (human or agent) browsing the directory tree understands what
+each part *means*. It is **not** a codebase — it holds *why we build and how we'll know it
+worked*, above any one repo. `/intent` reads it (inline path) to ground a PRD's *why*; the
+build harness never builds from it.
+
+This file is **static conventions, written once.** It does **not** track which visions or
+bets exist — the **folder structure is the map.** To see what's here, list the directories.
+
+## The taxonomy (narrative → number, top to bottom)
+
+| Level | What it is | Where it lives | Metric |
+|---|---|---|---|
+| **Vision** | Narrative direction — where the product is going and why. Prose, not a number. | `<vision>/roadmap.md` | — |
+| **Strategic intent** | A chosen *focus area* + its **lagging** outcome (the slow metric: retention, revenue, churn) + why it's the priority now. One per vision (up to ~three for a large org). | `<vision>/roadmap.md` | lagging |
+| **Bet (initiative)** | A *problem*, framed as a falsifiable hypothesis with an expected value, that moves a **leading** indicator believed to feed the intent's lagging outcome. | `<vision>/bets/<bet>/bet.md` | leading |
+| **Metric** | An instrument that reads a number from the live world, plus its append-only readings (baseline = line 0). | `<vision>/metrics/<metric>/` | — |
+| **PRD (option)** | A *solution* slice. Built by the harness, verified by a runner. | a code repo's `prds/<feature>/` | — (tests *built*, never *moved*) |
+
+**The line that must not blur:** a PRD's runner checks *built* (deterministic, pre-merge);
+a bet's metric checks *moved* (lagging, post-merge, advisory). The metric lives on the
+**bet**, never in a runner.
+
+## Folder layout — what each path means
+
+```
+<home>/                              # this folder (repo root if multi-repo product, else roadmap/)
+  AGENTS.md                          # this file — the conventions, written once
+  <vision-name>/                     # ONE per vision. The folder name IS the vision slug.
+    roadmap.md                       # vision (narrative) + strategic intent + lagging outcome + backlog
+    bets/
+      <bet-slug>/                    # ONE per bet. Folder name = the bet slug.
+        bet.md                       # problem, hypothesis, expected value, leading metric, horizon, status, verdict
+    metrics/
+      <metric-slug>/                 # ONE per metric. Folder name = the metric slug.
+        measure-outcome.sh           # the probe: reads the metric from the live world
+        query.sql | rubric.md        # what the probe reads (instrument-dependent)
+        readings.log                 # append-only time-series; line 0 is the baseline
+```
+
+So: a sub-folder of `<home>/` is a **vision**; under it, each folder in `bets/` is a
+**bet** and each folder in `metrics/` is a **metric**. There is no index to keep in sync —
+read the tree.
+
+## Leading vs lagging
+- **Lagging** = the slow outcome the vision is really after (retention, revenue). Anchors
+  the strategic intent. You can't act on it fast.
+- **Leading** = a fast signal that *predicts* the lagging one (activation, engagement).
+  Bets move leading indicators. This is what keeps strategy as fast as the build loop.
+- Name both. There is no single "North Star metric" — a vision runs on a small *portfolio*.
+- Avoid **vanity metrics** (numbers that only ever go up); give every metric a time component.
+
+## When to start a NEW vision vs add a new bet (your call; this is the coaching)
+- **New bet** — a fresh problem under an *existing* strategic intent (same big lagging
+  outcome). Add a folder under the existing `<vision>/bets/`.
+- **New vision** — a *different* strategic intent: a different big lagging focus. Add a new
+  `<vision-name>/` folder.
+- Resist **peanut-buttering** — don't spin up a vision per idea. Most new ideas are bets.
+  But the fork is *your* decision; `/roadmap` coaches, never auto-forks.
+
+## How to read this home
+List `<home>/` to see the visions → open a `<vision>/roadmap.md` for the vision + lagging
+anchor → open a `<vision>/bets/<bet>/bet.md` for the initiative + its leading metric →
+look in `<vision>/metrics/<metric>/` for the probe + readings.
