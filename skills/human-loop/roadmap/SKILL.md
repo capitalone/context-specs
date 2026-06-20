@@ -1,17 +1,17 @@
 ---
 name: roadmap
-description: Turn a product vision into a sharpened, measurable bet. Use when a product-minded person wants to think through a vision, "build a roadmap", decide which problem to attack next, or pin down the metric that proves their vision is having impact. Produces a roadmap home — an Obsidian vault of AGENTS.md conventions (written once) over per-vision folders, each holding roadmap.md (vision + strategic intent + lagging outcome), bets/<bet>/bet.md, metrics/<metric>/ (a probe + a live baseline), and a unified backlog/ of features + bugfixes that serve the bets. The front bookend of the Human Loop's Strategy phase; the upstream sibling of /intent.
+description: Turn a product vision into a sharpened, measurable bet — the recurring Strategy-phase conversation, run inside a roadmap home that /roadmap-init created. Use when a product-minded person wants to think through a vision, "work the roadmap", decide which problem to attack next, frame the next bet, or pin down the metric that proves their vision is having impact. Writes into the existing home — per-vision roadmap.md (vision + strategic intent + lagging outcome), bets/<bet>/bet.md, metrics/<metric>/ (a probe + a live baseline), and a unified backlog/ of features + bugfixes that serve the bets — deferring to the home's AGENTS.md for all structure. The front bookend of the Human Loop's Strategy phase; the upstream sibling of /intent. If no home exists yet, that's /roadmap-init's job, run once first.
 ---
 
 # roadmap
 
 Run a conversation that turns a vision into a coupled set of artifacts:
 
-- `AGENTS.md` — **orientation**: static conventions explaining what the taxonomy means
-  (vision, strategic intent, lagging/leading metric, bet, backlog item, probe) and what each
-  folder path means, so anyone browsing the tree understands it. Written once (plus the nested
-  `backlog/AGENTS.md` conventions); the folder structure itself is the map — there is no
-  maintained index.
+- `AGENTS.md` — **orientation** (scaffolded once by `/roadmap-init`, not by you): static
+  conventions explaining what the taxonomy means (vision, strategic intent, lagging/leading
+  metric, bet, backlog item, probe) and what each folder path means, so anyone browsing the
+  tree understands it. You **read and defer to it** — including the nested `backlog/AGENTS.md`
+  schema — and never rewrite it; the folder structure itself is the map, with no maintained index.
 - `<vision-name>/roadmap.md` — the **vision** (narrative direction) plus its **strategic
   intent(s)** — the chosen focus and the **lagging outcome** that proves the vision is
   working — and a loose list of **candidate bets**.
@@ -122,29 +122,28 @@ And the artifact references when you reach the build:
 - `references/roadmap-template.md` — the `roadmap.md` and `bet.md` skeletons (lean by
   default).
 - `references/probe-recipes.md` — the per-instrument-type cookbook for `measure-outcome.sh`.
-- `assets/AGENTS.md.template` — the home orientation file: the taxonomy + folder-path
-  conventions + the Obsidian-vault rules. Written once into a new home; never maintained as a map.
-- `assets/backlog/AGENTS.md.template`, `assets/backlog/{feature,bugfix}/AGENTS.md.template` —
-  the **backlog conventions** (frontmatter, types, how to phrase a feature vs a bug). Scaffolded
-  once into the home; the *schema lives here*, so the downstream skills (`/intent`,
-  `/evaluate-pr`) carry none of it — they just read these.
+
+The home's conventions — the orientation `AGENTS.md` and the `backlog/AGENTS.md` schema — are
+**scaffolded once by `/roadmap-init`, not carried here**. Read them from the home and defer to
+them (frontmatter, item types, status). They're the single source of truth the whole chain
+shares; you read the schema, you don't carry it.
 
 ## The guided flow
 
 ### Step 0 — Preflight & locate the home
-Decide where the **roadmap home** lives and confirm its working tree is clean.
-- **Single-repo product** → a `roadmap/` folder at the repo root, sibling to `prds/`. The
-  `AGENTS.md` lives **inside** `roadmap/`.
-- **Multi-repo product** (a UI repo + an API repo + …) → the roadmap is **its own repo**;
-  `AGENTS.md` lives at the **repo root**. Offer to `git init` / create the folder if absent.
+Find the **roadmap home** and confirm its working tree is clean. It already exists — a
+`roadmap/` folder beside `prds/` (single-repo) or its own repo (multi-repo), with an `AGENTS.md`
+at its root. **If no home exists, stop and point the human at `/roadmap-init`** — that one-time
+setup scaffolds the conventions; this skill assumes them. Read the home's `AGENTS.md` once for
+the taxonomy and folder map before you go further.
 
 The roadmap home sits *above* any one repo — ground the instrument in what the product
 emits and how the human says the project reads it, not in any single codebase's internals.
 
 ### Step 1 — The fork question (human-owned, coached) — R9
-Early, ask: **is this a new vision, a new bet, or a backlog item (feature/bugfix)?** If the
-home already exists, list its `<vision-name>/` folders to show what's there (and read
-`AGENTS.md` once for the conventions). Coach with the vocabulary — a new vision means a new
+Early, ask: **is this a new vision, a new bet, or a backlog item (feature/bugfix)?** List the
+home's `<vision-name>/` folders to show what's already there (you read its `AGENTS.md` for the
+conventions in Step 0). Coach with the vocabulary — a new vision means a new
 *strategic intent* (a different big lagging outcome); a new bet is an initiative *with a
 metric to move*; a **backlog item** is necessary work with *no* new metric (capability →
 `feature`, defect → `bugfix`), which may serve a bet or stand alone; don't fork per idea
@@ -192,20 +191,11 @@ it as line 0 of `readings.log` (`<ts> | <value> | baseline | -`). Can't read it 
 instrument, or pick a metric you can read (`references/baseline-right-reason.md`). Show the
 human the number and what it proves.
 
-### Step 8 — Ensure the conventions, commit, return
-If the home `AGENTS.md` is **absent**, scaffold the conventions (written once) from the
-templates — the home file and the nested backlog files:
+### Step 8 — Commit & return
+Commit the new strategy content — the conventions already exist (scaffolded by `/roadmap-init`),
+so **leave every `AGENTS.md` untouched**; you only add `<vision-name>/` content:
 ```
-AGENTS.md                       ← assets/AGENTS.md.template
-backlog/AGENTS.md               ← assets/backlog/AGENTS.md.template
-backlog/feature/AGENTS.md       ← assets/backlog/feature/AGENTS.md.template
-backlog/bugfix/AGENTS.md        ← assets/backlog/bugfix/AGENTS.md.template
-```
-If they **already exist, leave them untouched** — they're static conventions, *not* a map you
-maintain. The folder structure itself is the map; there is no index to keep in sync. Commit
-the home:
-```
-git add AGENTS.md backlog/AGENTS.md backlog/*/AGENTS.md <vision-name>/   # AGENTS.md files only on first run
+git add <vision-name>/        # the vision/bet/backlog/metric content you just wrote
 git commit -m "Roadmap: <vision> — bet <bet> (baseline <value>)"
 ```
 Tell the human the next move: `/intent` the bet (or a backlog item) to slice it into PRDs,
@@ -213,13 +203,14 @@ and `/evaluate-outcome` once the bet ships end-to-end. Leave the tree clean.
 
 ## Invocation & output contract
 
-- **Invoked by:** a human (`/roadmap`, optionally with a free-text seed). **Not** the
-  dispatcher — a human-in-the-loop skill, like `/intent` and the evaluate skills.
-- **Outputs (in the roadmap home):** the `AGENTS.md` conventions (home + nested `backlog/`,
-  written once on the first run only), and under `<vision-name>/`: `roadmap.md`,
+- **Invoked by:** a human (`/roadmap`, optionally with a free-text seed), inside a home that
+  `/roadmap-init` already stood up. **Not** the dispatcher — a human-in-the-loop skill, like
+  `/intent` and the evaluate skills.
+- **Outputs (in the existing roadmap home):** under `<vision-name>/`: `roadmap.md`,
   `bets/<bet>/bet.md`, `metrics/<metric>/measure-outcome.sh` (executable) + what it reads +
-  `readings.log` with a baseline line, and `backlog/{feature,bugfix}/<slug>.md` items.
-  Re-runnable per bet, per backlog item, and per vision.
+  `readings.log` with a baseline line, and `backlog/{feature,bugfix}/<slug>.md` items. **Never
+  the `AGENTS.md` conventions** — those are `/roadmap-init`'s, written once. Re-runnable per
+  bet, per backlog item, and per vision.
 - **How the chain reacts:** nothing automatic. The home is **read** by `/intent` (path passed
   inline) to ground a PRD's *why* and **written** by it (register-back of the PRD onto its
   backlog item); **read + appended** by `/evaluate-outcome` post-ship; and **appended** by
@@ -228,10 +219,11 @@ and `/evaluate-outcome` once the bet ships end-to-end. Leave the tree clean.
   carries no sentinels (Invariant 2 stays clean).
 
 ## Idempotency & re-running
-- Re-running against an existing home: read `AGENTS.md`, show what's there, and **add a new
-  bet** (under an existing vision), **a backlog item** (`backlog/{feature,bugfix}/`), or **a
-  new vision** (a new `<vision-name>/`) per the fork decision — never start over. One home,
-  many visions, bets, and backlog items. Leave existing `AGENTS.md` files untouched.
+- Every run is against an existing home (if none exists, send the human to `/roadmap-init`):
+  read `AGENTS.md`, show what's there, and **add a new bet** (under an existing vision), **a
+  backlog item** (`backlog/{feature,bugfix}/`), or **a new vision** (a new `<vision-name>/`)
+  per the fork decision — never start over. One home, many visions, bets, and backlog items.
+  Leave every `AGENTS.md` untouched.
 - A metric that already has a baseline is not re-baselined — that's `/evaluate-outcome`'s
   job (it appends readings; never rewrites line 0).
 - If a previous run left an uncommitted roadmap in the tree, offer to resume it.
@@ -251,7 +243,8 @@ and `/evaluate-outcome` once the bet ships end-to-end. Leave the tree clean.
 - **Never pre-slice a bet into PRDs** — that's `/intent`'s job (R6, R7).
 - **Never auto-fork a vision.** The new-vision / new-bet / backlog-item call is the human's (R9).
 - **Never make `roadmap.md` an index, and never maintain a map.** The `AGENTS.md` files are
-  static conventions written once; the folder structure is the map. Don't append to them on
-  re-runs (Step 8).
+  static conventions; the folder structure is the map. Don't append to them — ever.
+- **Never scaffold or modify the home's `AGENTS.md` conventions.** That's `/roadmap-init`'s
+  job, done once; you read them and defer, you don't write them. No home → `/roadmap-init` first.
 - **Never hand the probe to the human to author** (R8); **never commit a probe you haven't
   run** (R4); **never write a secret into the home** — access is a pointer.

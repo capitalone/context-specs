@@ -13,7 +13,7 @@ surfaced it** (R10). Never emit an empty section to "be thorough."
 
 ```
 <home>/                             # repo root (multi-repo) OR roadmap/ folder (single-repo)
-  AGENTS.md                         # static orientation — taxonomy + folder conventions (assets/AGENTS.md.template)
+  AGENTS.md                         # static orientation — taxonomy + folder conventions (scaffolded once by /roadmap-init)
   <vision-name>/
     roadmap.md                      # this file's skeleton — vision + strategic intent + candidate bets
     bets/<bet-slug>/bet.md          # one per bet
@@ -29,7 +29,7 @@ surfaced it** (R10). Never emit an empty section to "be thorough."
 
 This file holds the `roadmap.md` and `bet.md` skeletons. **Backlog-item shapes are not here** —
 they live in the home's `backlog/AGENTS.md` and `backlog/{feature,bugfix}/AGENTS.md` (scaffolded
-from `assets/backlog/…`), so the schema has one home.
+once by `/roadmap-init`), so the schema has one home.
 
 ## `<vision-name>/roadmap.md` (always)
 

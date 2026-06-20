@@ -142,12 +142,15 @@ Understanding ─▶ Strategy ─▶ Intent ─▶ [ the harness builds ] ─▶
 - **Understanding** ([`/wiki-init`](./skills/human-loop/wiki-init/SKILL.md)) —
   a Karpathy "LLM Wiki" that builds *your* model of the problem space, so you
   arrive at Strategy with sharper questions.
-- **Strategy** ([`/roadmap`](./skills/human-loop/roadmap/SKILL.md)) — sharpen the
-  vision into a **bet** on an outcome, with a metric, its instrument, and a
-  baseline read *now*. Forces *impact is measurable* the way the PRD runner forces
-  *done is executable* — the escape hatch from the build trap. The roadmap home is an
-  Obsidian vault that also holds a **unified backlog** (features + bugfixes) serving the
-  bets; `/intent` registers each PRD it builds back onto its item, tying output to outcome.
+- **Strategy** ([`/roadmap-init`](./skills/human-loop/roadmap-init/SKILL.md) +
+  [`/roadmap`](./skills/human-loop/roadmap/SKILL.md)) — `/roadmap-init` stands up the
+  **roadmap home** once (the `AGENTS.md` conventions + backlog schema, and it installs
+  `/roadmap` into the home), the way `/wiki-init` stands up the wiki. Then `/roadmap`
+  sharpens the vision into a **bet** on an outcome, with a metric, its instrument, and a
+  baseline read *now* — forcing *impact is measurable* the way the PRD runner forces
+  *done is executable*, the escape hatch from the build trap. The home is an Obsidian vault
+  that also holds a **unified backlog** (features + bugfixes) serving the bets; `/intent`
+  registers each PRD it builds back onto its item, tying output to outcome.
 - **Intent** ([`/intent`](./skills/human-loop/intent/SKILL.md)) — turn that
   understanding into a PRD plus a runnable definition of done.
 - **Evaluate** ([`/evaluate-pr`](./skills/human-loop/evaluate-pr/SKILL.md) +
@@ -280,9 +283,12 @@ Run from your target project directory. Copies agent definitions (e.g.
 | | `/address-feedback` | Triage and answer reviewer findings |
 | | `/learn` | Post-merge long-term memory update |
 | **3 · Human loop** | `/wiki-init` | Stand up a Karpathy LLM-wiki (Understanding) |
+| | `/roadmap-init` | Stand up the roadmap home (Strategy setup, once) |
+| | `/roadmap` | Sharpen a vision into a measurable bet |
 | | `/intent` | Idea → PRD + runnable definition of done |
 | | `/evaluate-pr` | Evaluate the change; build understanding |
 | | `/evaluate-sessions` | Evaluate the build trail; capture evals |
+| | `/evaluate-outcome` | Measure whether the shipped bet moved its metric |
 
 ---
 

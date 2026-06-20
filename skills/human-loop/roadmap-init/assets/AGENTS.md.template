@@ -5,7 +5,7 @@ read-me-first: it explains the taxonomy and the folder conventions so that anyon
 agent) browsing the directory tree understands what each part *means*. It holds *why we build,
 how we'll know it worked, and the work in flight* — above any one repo.
 
-- `/roadmap` writes the strategy (visions, bets, metrics) and scaffolds these conventions.
+- `/roadmap-init` scaffolds these conventions (once); `/roadmap` writes the strategy (visions, bets, metrics).
 - `/evaluate-outcome` reads a bet and appends its metric readings + verdict.
 - `/intent` reads a bet or backlog item to ground a PRD's *why*, and **registers the PRD it
   creates back** onto that backlog item (tying output to outcome).

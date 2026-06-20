@@ -1,0 +1,20 @@
+<!--
+  Snippet for the HOME REPO's root AGENTS.md (created/appended by /roadmap-init).
+  Tailor <home-path> to where the roadmap home lives:
+    - single-repo product → `roadmap/`
+    - multi-repo product  → `.` (the home is this repo's root)
+  Don't duplicate on re-run; update <home-path> in place if it changed.
+-->
+
+## Product roadmap
+
+This repo carries a **product roadmap home** at `<home-path>` — the strategy vault holding
+*why we build, how we'll know it worked, and the work in flight*. Read `<home-path>/AGENTS.md`
+for its taxonomy and folder conventions, and `<home-path>/backlog/AGENTS.md` for the work-item
+schema.
+
+Operate on it with the bundled **`/roadmap`** skill (`.claude/skills/roadmap/`): it sharpens a
+vision into a measurable bet, or files a backlog item. The home is **read** by `/intent` to
+ground a PRD's *why* and **appended** by `/intent` (register-back) and `/evaluate-pr`
+(follow-up filing). The build harness never builds from it — it lives outside any `prds/` and
+carries no sentinels.

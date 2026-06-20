@@ -4,9 +4,9 @@
 roadmap. A project can change how tightly a PRD couples to a bet without touching the flow in
 SKILL.md.*
 
-`/intent` slices a *problem into a feature*. Upstream, `/roadmap` keeps a **roadmap home**: a
-strategy vault of **bets** (problems with a metric to move) and a **backlog** of work (features
-+ bugfixes) that serves them. When the user is working off a roadmap, grounding the PRD in the
+`/intent` slices a *problem into a feature*. Upstream, `/roadmap-init` stands up a **roadmap
+home** and `/roadmap` keeps it filled: a strategy vault of **bets** (problems with a metric to
+move) and a **backlog** of work (features + bugfixes) that serves them. When the user is working off a roadmap, grounding the PRD in the
 relevant bet or backlog item keeps the feature pointed at an outcome someone is actually
 measuring — and **registering the PRD back** ties the output you're about to build to that
 outcome. This is **optional**: with no roadmap, `/intent` behaves exactly as it always has.

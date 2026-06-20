@@ -77,7 +77,7 @@ The payoff is direct: a richer model of the domain means a sharper strategy. You
 arrive at the next phase already understanding the concepts, the constraints, and
 the trade-offs — so the bet you place is the right one.
 
-## Strategy — `/roadmap` and `/evaluate-outcome`
+## Strategy — `/roadmap-init`, `/roadmap`, and `/evaluate-outcome`
 
 Understanding gives you a model of the problem space. Strategy is where you turn
 that model into a **direction with a way to know it's working.** This is the phase
@@ -86,12 +86,25 @@ shipped rather than outcomes produced. A roadmap that's just a list of features
 with dates is the trap wearing a costume; the cure is to express direction as
 **bets on outcomes you can measure.**
 
+### `/roadmap-init` — stand up the home (once)
+
+Strategy needs a place to live, and standing it up is a one-time, mechanical job —
+so it's its own skill, exactly as Understanding splits `/wiki-init` from `/ingest`.
+[`/roadmap-init`](../skills/human-loop/roadmap-init/SKILL.md) scaffolds the **roadmap
+home**: the `AGENTS.md` that teaches the taxonomy and folder conventions (written
+once; the folder tree is the map) and the nested `backlog/AGENTS.md` that holds the
+work-item schema — the single source of truth every downstream skill defers to. It
+also installs the recurring `/roadmap` skill into the home repo and points that
+repo's root `AGENTS.md` at it, so the home carries its own operating skill the way a
+wiki vault carries its `/ingest`. It writes **no** strategy content — no vision, no
+bet, no metric. That's the next skill's job.
+
 ### `/roadmap` — sharpen the vision into a measurable bet
 
-[`/roadmap`](../skills/human-loop/roadmap/SKILL.md) is a human-attentive
-conversation, the upstream sibling of `/intent`. It produces a **roadmap home** —
-an `AGENTS.md` that teaches the taxonomy and folder conventions (written once; the
-folder tree is the map) over per-vision folders, each holding a few coupled things:
+[`/roadmap`](../skills/human-loop/roadmap/SKILL.md) is the human-attentive
+conversation that *fills* the home, the upstream sibling of `/intent` and run as
+often as you place a new bet. Inside the home `/roadmap-init` stood up, it writes
+per-vision folders, each holding a few coupled things:
 
 - the **vision**, sharpened — narrative direction, the act of writing it tightens it;
 - the **strategic intent** — the chosen focus and its **lagging outcome** (the slow
