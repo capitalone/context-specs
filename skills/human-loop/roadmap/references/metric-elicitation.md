@@ -102,21 +102,26 @@ Stating both makes the **hypothesis** falsifiable: "moving activation (leading) 
 pageviews) flatters without informing. Give every metric a **time component** ("7-day
 activation", "30-day retention") so it can go *down* and is therefore actionable.
 
-## The fork: new vision or new bet? (R9 — coach, never decide for them)
+## The fork: new vision, new bet, or backlog item? (R9 — coach, never decide for them)
 
 When a new idea arrives, help the human place it — but the call is theirs:
 
-- **New bet** — a fresh problem under an *existing* strategic intent (same big lagging
-  outcome). The common case. Lands as `bets/<bet>/` under the existing `<vision-name>/`.
+- **New bet** — a fresh problem *with a falsifiable hypothesis and a metric to move*, under an
+  *existing* strategic intent (same big lagging outcome). The common case. Lands as
+  `bets/<bet>/` under the existing `<vision-name>/`.
 - **New vision** — a *different* strategic intent: a different big lagging focus, with its
   own users/outcome. Lands as a new `<vision-name>/` folder.
+- **Backlog item** — concrete *work* with **no** new metric: a **feature** (a capability) or a
+  **bugfix**. Lands as a file under `backlog/{feature,bugfix}/`, optionally linked to the bet
+  it serves. This is the home for "we should add X" / "Y is broken" — necessary, but not a
+  hypothesis.
 
-The forcing question: *does this idea move an existing lagging anchor, or does it need a
-new one?* If it can attach to an existing intent, it's a bet. If it genuinely needs a
-different big outcome, it may be a new vision. If it can do **neither**, that's the signal
-it's scope creep — not yet a bet, not yet a vision. And resist **peanut-buttering**:
-spinning up a vision per idea fragments focus. Most ideas are bets. Coach toward that, then
-follow their lead — `/roadmap` never auto-forks.
+The forcing questions, in order: *Is there a new falsifiable hypothesis / a metric to move?*
+If **no** → it's a backlog item, not a bet (capability → `feature`, defect → `bugfix`). If
+**yes**, *does it move an existing lagging anchor, or need a new one?* — attaches to an
+existing intent → a bet; genuinely needs a different big outcome → maybe a new vision. Resist
+**peanut-buttering**: spinning up a vision per idea fragments focus. Most ideas are bets or
+backlog items. Coach toward that, then follow their lead — `/roadmap` never auto-forks.
 
 ## Framework menus — offer, never impose
 

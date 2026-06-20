@@ -1,0 +1,47 @@
+# Backlog · bugfix — how to specify a defect
+
+A **bugfix** item is broken behavior. The bar: you can **reproduce it**, or at minimum
+**describe the bad thing happening** clearly enough that someone else could. No hypothesis, no
+metric — a bug is remedial work. It may serve a bet (e.g. the bug blocks a bet's capability),
+but usually `bet:` is omitted.
+
+## What a good bugfix item says
+- **What's broken** — the symptom in user terms.
+- **Steps to reproduce** — the path to trigger it (or, if not reliably reproducible, the
+  conditions under which it's been seen).
+- **Expected vs actual** — what should happen, and what happens instead.
+- **Where** *(optional)* — route/screen/repo, and any error text.
+
+## Skeleton
+```markdown
+---
+type: bugfix
+status: backlog
+bet:                       # usually omitted; set only if the bug blocks a specific bet
+repos: [<repo>]
+created: <YYYY-MM-DD>
+prd:
+---
+
+# <Bug title — the symptom, not the fix>
+
+## What's broken
+<The bad behavior, in user terms.>
+
+## Steps to reproduce
+1. <step>
+2. <step>
+(If not reliably reproducible: the conditions under which it's been observed.)
+
+## Expected vs actual
+- **Expected:** <what should happen>
+- **Actual:** <what happens instead>
+
+## Where (optional)
+<route / screen / repo / error text>
+```
+
+- **Describe the symptom, not the fix** — the title and body are about *what's wrong*, not how
+  to repair it. The repair is the PRD's job (or a direct fix).
+- If you can't reproduce *and* can't describe the bad behavior, it isn't ready to file — dig
+  until one of the two is true.

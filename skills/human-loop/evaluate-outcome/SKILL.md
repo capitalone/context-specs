@@ -34,7 +34,8 @@ a finding, not a failure — it's the learning the next bet is built on. Read th
 - **O1 — The bet is the unit, not the PRD.** A bet decomposed into one or many PRDs
   downstream; each PRD's `run-prd-test.sh` already proved it was *built*. You measure one
   altitude up: did the **bet** move its **metric**? You read `bets/<bet>/bet.md`, not the
-  diffs.
+  diffs. (A **backlog item** — feature or bugfix — carries no metric, so it is out of scope
+  here; only bets are measured.)
 - **O2 — Read the trajectory, never a single point.** One reading two days post-ship is
   noise: novelty spikes regress, weekdays differ, rollouts are partial. A blip is **not**
   an outcome. Sample across the bet's horizon and judge the *shape* — sustained movement,

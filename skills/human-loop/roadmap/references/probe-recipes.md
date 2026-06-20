@@ -11,6 +11,9 @@ Unlike `run-prd-test.sh`, the probe is **not** a pass/fail gate. Its exit code s
 the instrument couldn't read (no access, no data). The **value** is the payload, not the
 exit code. Nothing downstream merges or blocks on it.
 
+Probes belong to **metrics on bets**. A **backlog item** (feature/bugfix) has no metric, so it
+gets no probe — don't synthesize one for it.
+
 ## Shape
 
 ```bash

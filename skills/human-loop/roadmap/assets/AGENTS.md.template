@@ -1,14 +1,22 @@
 # Product Roadmap — orientation
 
-This is a **product strategy home**, written and read by the `/roadmap` and
-`/evaluate-outcome` skills. It is read-me-first: it explains the taxonomy and the folder
-conventions so that anyone (human or agent) browsing the directory tree understands what
-each part *means*. It is **not** a codebase — it holds *why we build and how we'll know it
-worked*, above any one repo. `/intent` reads it (inline path) to ground a PRD's *why*; the
-build harness never builds from it.
+This is a **product strategy home**, written and read by the Human-Loop skills. It is
+read-me-first: it explains the taxonomy and the folder conventions so that anyone (human or
+agent) browsing the directory tree understands what each part *means*. It holds *why we build,
+how we'll know it worked, and the work in flight* — above any one repo.
 
-This file is **static conventions, written once.** It does **not** track which visions or
-bets exist — the **folder structure is the map.** To see what's here, list the directories.
+- `/roadmap` writes the strategy (visions, bets, metrics) and scaffolds these conventions.
+- `/evaluate-outcome` reads a bet and appends its metric readings + verdict.
+- `/intent` reads a bet or backlog item to ground a PRD's *why*, and **registers the PRD it
+  creates back** onto that backlog item (tying output to outcome).
+- `/evaluate-pr` may **file a follow-up** (a feature or bug found during review) into the backlog.
+
+The build harness never builds from this home — it lives outside any `prds/` and carries no
+sentinels.
+
+This file is **static conventions, written once.** It does **not** track which visions, bets,
+or backlog items exist — the **folder structure is the map.** To see what's here, list the
+directories (or query the frontmatter; see "This is an Obsidian vault" below).
 
 ## The taxonomy (narrative → number, top to bottom)
 
@@ -17,12 +25,27 @@ bets exist — the **folder structure is the map.** To see what's here, list the
 | **Vision** | Narrative direction — where the product is going and why. Prose, not a number. | `<vision>/roadmap.md` | — |
 | **Strategic intent** | A chosen *focus area* + its **lagging** outcome (the slow metric: retention, revenue, churn) + why it's the priority now. One per vision (up to ~three for a large org). | `<vision>/roadmap.md` | lagging |
 | **Bet (initiative)** | A *problem*, framed as a falsifiable hypothesis with an expected value, that moves a **leading** indicator believed to feed the intent's lagging outcome. | `<vision>/bets/<bet>/bet.md` | leading |
+| **Backlog item** | A unit of work with **no** hypothesis and **no** metric: a **feature** (new capability) or a **bugfix**. Optionally serves a bet (`bet:` frontmatter). `/intent` turns one into a PRD. | `<vision>/backlog/<type>/<slug>.md` | — |
 | **Metric** | An instrument that reads a number from the live world, plus its append-only readings (baseline = line 0). | `<vision>/metrics/<metric>/` | — |
-| **PRD (option)** | A *solution* slice. Built by the harness, verified by a runner. | a code repo's `prds/<feature>/` | — (tests *built*, never *moved*) |
+| **PRD (option)** | A *solution* slice — the downstream, buildable form of a feature backlog item. Built by the harness, verified by a runner. | a code repo's `prds/<feature>/` | — (tests *built*, never *moved*) |
 
 **The line that must not blur:** a PRD's runner checks *built* (deterministic, pre-merge);
 a bet's metric checks *moved* (lagging, post-merge, advisory). The metric lives on the
-**bet**, never in a runner.
+**bet**, never in a runner — and never on a backlog item.
+
+## What "done" means here — read before you reason about progress
+
+A **bet** is a learning instrument, not a checklist. The features and bugfixes in its backlog
+are **options** — attempts to move the bet's leading indicator. Shipping all of them does
+**not** mean the bet is done, or that it worked.
+
+A bet is **done only when its metric is read** and you can say which way it moved. Shipping
+every option with the indicator flat is **not** a failure to finish — it *is* the learning,
+and that learning is the input to the next bet.
+
+So never gauge a bet by how much of its backlog has shipped — that's the **build trap**:
+mistaking output for outcome. Track output to know what's been *tried*; read the **outcome**
+to know if it *worked*.
 
 ## Folder layout — what each path means
 
@@ -30,10 +53,16 @@ a bet's metric checks *moved* (lagging, post-merge, advisory). The metric lives 
 <home>/                              # this folder (repo root if multi-repo product, else roadmap/)
   AGENTS.md                          # this file — the conventions, written once
   <vision-name>/                     # ONE per vision. The folder name IS the vision slug.
-    roadmap.md                       # vision (narrative) + strategic intent + lagging outcome + backlog
+    roadmap.md                       # vision (narrative) + strategic intent + lagging outcome + candidate bets
     bets/
       <bet-slug>/                    # ONE per bet. Folder name = the bet slug.
         bet.md                       # problem, hypothesis, expected value, leading metric, horizon, status, verdict
+    backlog/                         # the unified work backlog (features + bugfixes)
+      AGENTS.md                      # how to write a backlog item — read before adding one
+      feature/
+        <slug>.md                    # a feature backlog item (new capability); one file per item
+      bugfix/
+        <slug>.md                    # a bugfix backlog item; one file per item
     metrics/
       <metric-slug>/                 # ONE per metric. Folder name = the metric slug.
         measure-outcome.sh           # the probe: reads the metric from the live world
@@ -42,26 +71,42 @@ a bet's metric checks *moved* (lagging, post-merge, advisory). The metric lives 
 ```
 
 So: a sub-folder of `<home>/` is a **vision**; under it, each folder in `bets/` is a
-**bet** and each folder in `metrics/` is a **metric**. There is no index to keep in sync —
-read the tree.
+**bet**, each file in `backlog/<type>/` is a **backlog item**, and each folder in `metrics/`
+is a **metric**. There is no index to keep in sync — read the tree (or query frontmatter).
 
-## Leading vs lagging
-- **Lagging** = the slow outcome the vision is really after (retention, revenue). Anchors
-  the strategic intent. You can't act on it fast.
-- **Leading** = a fast signal that *predicts* the lagging one (activation, engagement).
-  Bets move leading indicators. This is what keeps strategy as fast as the build loop.
-- Name both. There is no single "North Star metric" — a vision runs on a small *portfolio*.
-- Avoid **vanity metrics** (numbers that only ever go up); give every metric a time component.
+## This is an Obsidian vault
 
-## When to start a NEW vision vs add a new bet (your call; this is the coaching)
-- **New bet** — a fresh problem under an *existing* strategic intent (same big lagging
-  outcome). Add a folder under the existing `<vision>/bets/`.
+This home is read **in Obsidian**. Every note carries that weight; treat keeping it tidy as
+part of the work, not an afterthought:
+
+- **Frontmatter on every note.** YAML at the top (`type`, `status`, `bet`, `repos`, `created`,
+  …). The per-artifact conventions live in the sibling `AGENTS.md` (e.g. `backlog/AGENTS.md`).
+- **`[[wikilinks]]` between artifacts.** Link a backlog item to the bet it serves
+  (`bet: "[[<bet-slug>]]"`), a bet to its metric, a PRD pointer back to its item. The links
+  are the graph; keep them live.
+- **Dataview rollups, not maintained indexes.** "All work for bet X" is a *query* over
+  `bet:` frontmatter — not a hand-kept list, and not a folder (backlog items are flat peers).
+  `roadmap.md` surfaces a bet's in-flight work with a Dataview block; the folder tree stays
+  the source of truth.
+
+Maintaining frontmatter and links is **every agent's job here** — if you add or change an
+artifact, update its frontmatter and its `[[links]]` so the graph and the queries stay true.
+(Raw GitHub renders `[[links]]` and Dataview weakly; this vault is meant to be opened in
+Obsidian. Keep frontmatter human-legible regardless.)
+
+## When to start a NEW vision, a new bet, or a backlog item (your call; this is the coaching)
+- **New bet** — a fresh problem with a *falsifiable hypothesis and a metric to move*, under an
+  *existing* strategic intent. Add a folder under the existing `<vision>/bets/`.
 - **New vision** — a *different* strategic intent: a different big lagging focus. Add a new
   `<vision-name>/` folder.
-- Resist **peanut-buttering** — don't spin up a vision per idea. Most new ideas are bets.
-  But the fork is *your* decision; `/roadmap` coaches, never auto-forks.
+- **New backlog item** — necessary work with **no** new hypothesis or metric: a **feature**
+  (new capability) or a **bugfix**. It may *serve* a bet (link it) or stand alone. Add a file
+  under `<vision>/backlog/feature/` or `backlog/bugfix/` (see `backlog/AGENTS.md`).
+- Resist **peanut-buttering** — don't spin up a vision per idea. Most new ideas are bets or
+  backlog items. The fork is *your* decision; `/roadmap` coaches, never auto-forks.
 
 ## How to read this home
 List `<home>/` to see the visions → open a `<vision>/roadmap.md` for the vision + lagging
-anchor → open a `<vision>/bets/<bet>/bet.md` for the initiative + its leading metric →
+anchor + candidate bets → open a `<vision>/bets/<bet>/bet.md` for the initiative + its leading
+metric → browse `<vision>/backlog/` (or query `bet:` frontmatter) for the work serving it →
 look in `<vision>/metrics/<metric>/` for the probe + readings.

@@ -74,10 +74,11 @@ conversation so your discipline is grounded, not improvised:
   project can edit this to change the Q&A style without touching the flow.)*
 - `references/right-reason.md` — what counts as failing for the right reason, with
   examples. *(Hackable seam: the failing-test heuristic lives here.)*
-- `references/roadmap-awareness.md` — **optional**: how to read an upstream `/roadmap` bet
-  to ground the PRD's *why*, and the hard line that the bet's metric is rationale, never a
-  runner check. Only relevant when the user is working off a roadmap. *(Hackable seam: how
-  tightly a PRD couples to a bet.)*
+- `references/roadmap-awareness.md` — **optional**: how to ground the PRD's *why* in an
+  upstream `/roadmap` **bet or backlog item**, register the PRD back onto it, and the hard
+  line that a bet's metric is rationale, never a runner check. The roadmap home is
+  self-describing — defer to its `AGENTS.md` for all structure. Only relevant when the user is
+  working off a roadmap. *(Hackable seam: how tightly a PRD couples to a bet.)*
 
 And the two artifact references when you reach the build:
 
@@ -100,12 +101,14 @@ Expert to ground questions in how this project actually works. Follow
 `references/elicitation.md`.
 
 **Optional — roadmap grounding.** Ask whether this feature serves an upstream `/roadmap`
-bet. If so, the user passes the roadmap-home path **inline** (e.g. `/intent --roadmap
-../product-roadmap …`; there is no pointer file — `/intent` only reads it). Read the bet
-and let its *problem* and *target metric* sharpen the PRD's `## Why`. The bet's metric is
-**rationale only — never a check in `run-prd-test.sh`** (P4): the runner tests *built*, the
-metric tests *moved*, and `/evaluate-outcome` owns the latter. No roadmap → proceed exactly
-as normal. See `references/roadmap-awareness.md`.
+**bet or backlog item**. If so, the user passes the roadmap-home path **inline** (e.g.
+`/intent --roadmap ../product-roadmap …`; there is no pointer file). The home is
+self-describing: read its `AGENTS.md` for structure, then let the unit's *problem* (and, for a
+bet, its *target metric*) sharpen the PRD's `## Why`. A bet's metric is **rationale only —
+never a check in `run-prd-test.sh`** (P4): the runner tests *built*, the metric tests *moved*,
+and `/evaluate-outcome` owns the latter. After you file the PRD, **register it back** onto the
+bet/backlog item per the home's conventions (output tied to outcome). No roadmap → proceed
+exactly as normal. See `references/roadmap-awareness.md`.
 
 ### Step 2 — Surface external context
 Ask whether the user already has anything that should govern this feature: an API
@@ -153,11 +156,13 @@ harness will pick it up on its next tick.
 ## Invocation & output contract
 
 - **Invoked by:** a human (`/intent`, optionally with a free-text seed, and optionally
-  `--roadmap <path>` to ground the PRD in an upstream bet). Not the dispatcher — this is a
-  human-in-the-loop skill.
+  `--roadmap <path>` to ground the PRD in an upstream bet or backlog item and register the PRD
+  back onto it). Not the dispatcher — this is a human-in-the-loop skill.
 - **Outputs (relative to repo root):** `prds/<feature>/prd.md`,
   `prds/<feature>/run-prd-test.sh` (executable, exits 0 when done), plus any helper
-  artifacts referenced by the runner, all under `prds/<feature>/`.
+  artifacts referenced by the runner, all under `prds/<feature>/`. When grounded in a roadmap
+  (`--roadmap`), also a register-back commit in the roadmap home (the PRD pointer on its
+  bet/backlog item) — per the home's `AGENTS.md`, not auto-pushed.
 - **Completion signal for the chain:** the pushed `prd/<author-slug>/<feature>` branch
   carrying those committed files. There is no sentinel file — the branch is the queue.
 

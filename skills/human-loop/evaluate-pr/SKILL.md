@@ -132,7 +132,10 @@ sharpens the human's taste and surfaces things worth changing. If something shou
 change, **you fix it here and push** (Step 7) — you don't file a request back to the
 loop. Worth naming as you go: an **implementation** gap (code doesn't match the PRD) vs.
 a **PRD defect** (the intent itself missed something obvious-in-hindsight). Either way
-the fix is a code change on this branch; don't rewrite `prd.md`.
+the fix is a code change on this branch; don't rewrite `prd.md`. A third kind — an
+**out-of-scope follow-up** (a missing-but-obvious feature, or a bug to fix later) — isn't
+a fix you make here: if a **roadmap home is present**, file it into the roadmap's backlog
+*with the human*, deferring to the home's `AGENTS.md` (see `references/walkthrough.md`).
 
 ### Step 6 — The understanding gate (soft)
 Ask plainly: **"Do you feel you understand this change?"** If yes, proceed to the verdict.
@@ -163,8 +166,10 @@ harness." You are the last mile.
   `/intent`.
 - **Outputs:** a **merged** PR, a **closed** PR, or **pushed commits** on `feature/<f>`
   (optionally then merged). Those commits may include human-authored memory edits
-  (Expert / AGENTS.md) that reach memory through the merge + `/learn` (E7). No sentinels,
-  no `.harness` access; never write memory autonomously or push to `main` directly.
+  (Expert / AGENTS.md) that reach memory through the merge + `/learn` (E7), and — when a
+  roadmap home is present — an optional **backlog filing** in that home (an out-of-scope
+  follow-up, per its `AGENTS.md`). No sentinels, no `.harness` access; never write memory or
+  backlog items autonomously, or push to `main` directly.
 - **How the harness reacts** (the skill does not manage this — the dispatcher does):
   merge/close → the cleanup pass tears down the worktree + `human-review-<f>` sentinels
   (merge also triggers the post-merge `/learn` pass). A push while in HUMAN_REVIEW just updates the
@@ -181,6 +186,9 @@ re-converged (a new "Ready for your review" comment), just evaluate the new stat
   initiative — but when the human recognizes a pattern worth keeping, capture it with them
   and commit it on `feature/<f>`; it reaches memory as ground truth via the merge + `/learn`
   P7 (E7).
+- **Never file a backlog item autonomously, or when no roadmap home exists.** An out-of-scope
+  follow-up is filed only with the human, and only into a roadmap home that's present — per
+  its `AGENTS.md`. No roadmap → name it for the human, file nothing.
 - **Never rehash the bot's mechanical findings.** Ingest, summarize, move on (E3).
 - **Never auto-merge or auto-close.** Both require the human's explicit go-ahead (E9).
 - **Never hand work back to the loop.** No `CHANGES_REQUESTED`, no reviewer ping — if a

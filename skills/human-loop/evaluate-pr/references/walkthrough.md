@@ -62,11 +62,22 @@ As you walk, you'll find things. Sort each into:
 - **PRD defect** — the intent itself missed something obvious-in-hindsight. The most
   valuable find: Evaluate just improved the *next* Intent. Here, fix the **code** for
   this PR.
+- **Out-of-scope follow-up** — necessary work this PR shouldn't carry: a missing-but-obvious
+  feature, or a bug worth fixing later. *Not* a fix you make here — file it (see below).
 
-When something should change, **you fix it here and push** — there is no handing work
-back to the loop. Make the edit with the human in the detached checkout, commit, and
+When something should change *in this PR*, **you fix it here and push** — there is no handing
+work back to the loop. Make the edit with the human in the detached checkout, commit, and
 `git push origin HEAD:feature/<f>` (see `verdict.md`). Keep fixes scoped to what was
 discussed; this is the last mile, not a re-implementation.
+
+When the find is an **out-of-scope follow-up** and a **roadmap home is present** (the user
+points you at it, or `/intent` grounded this PR in one), file it into the roadmap's
+**backlog** — `backlog/feature/` for a missing capability, `backlog/bugfix/` for a defect —
+**with the human**, and commit it (on the branch if the home is in-repo, else a dedicated
+commit in the home; don't auto-push). **Defer to the home's `backlog/AGENTS.md` for how to
+write it** — you carry none of that schema. This mirrors the memory-seeding move below: the
+human recognizes the need, you structure it, it lands where the next `/roadmap` or `/intent`
+pass will see it. No roadmap home → just name the follow-up for the human; file nothing.
 
 Separately, the walk may surface not a change to *make* but a pattern to *remember* — a
 convention this PR establishes, an invariant it upholds, an abstraction worth naming for

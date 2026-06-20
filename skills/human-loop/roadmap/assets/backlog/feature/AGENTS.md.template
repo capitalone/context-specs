@@ -1,0 +1,50 @@
+# Backlog · feature — how to specify a new capability
+
+A **feature** item is a new user-facing capability we want, stated as a **problem and why**,
+never as a solution. `/intent` turns it into one or more PRDs (the buildable, runner-verified
+form); it may serve a bet, but it carries **no metric of its own** — the metric lives on the
+bet.
+
+Write it from the user's side. The reader should understand *who is stuck, and why this
+matters*, without being told how to build it.
+
+## What a good feature item says
+- **As a user…** — who needs this and the job they're trying to do.
+- **Why it matters** — the problem today and the cost of leaving it. If it serves a bet, name
+  the indicator it's meant to help move (as rationale, not a metric on the item).
+- **Definition of done — at outcome altitude** — what's true for the user when this is done.
+  Not endpoints, schemas, or components — that's the PRD/runner's altitude.
+- **Out of scope / non-goals** *(optional)* — what this is deliberately not.
+
+## Skeleton
+```markdown
+---
+type: feature
+status: backlog
+bet: "[[<bet-slug>]]"      # optional
+repos: [<repo>]
+created: <YYYY-MM-DD>
+prd:
+---
+
+# <Feature title>
+
+## As a user
+As a <role>, I want <capability> so that <outcome>.
+
+## Why it matters
+<The problem today, who it hurts, the cost of inaction. If it serves [[<bet-slug>]], note the
+indicator it's meant to help move — as rationale, never a check.>
+
+## Definition of done (outcome altitude)
+- <what's true for the user when this is done>
+- <observable, solution-agnostic>
+
+## Out of scope (optional)
+- <explicit non-goals>
+```
+
+- **Never name the solution** here (no endpoints, tables, components, libraries). If you catch
+  yourself designing, stop — that belongs in the PRD.
+- `/intent` sets `status: prd-drafted` and fills `prd:` when it files the PRD against this
+  item. A feature may become **several** PRDs — that's fine; `/intent` slices lazily.

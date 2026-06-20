@@ -1,0 +1,50 @@
+# Backlog — how to write a work item
+
+This folder is the **unified work backlog** for this vision: the **features** and **bugfixes**
+that attempt to move the bets, plus standalone work that serves the product. A backlog item is
+a unit of work with **no hypothesis and no metric** — if it has a metric to move, it's a
+**bet**, not a backlog item (see the home `AGENTS.md`).
+
+Read this before adding an item. Per-type detail (how to phrase a feature vs a bug) lives in
+the subfolder `AGENTS.md`.
+
+## Subfolders — pick one
+- **`feature/`** — a new user-facing capability. → see `feature/AGENTS.md`.
+- **`bugfix/`** — broken behavior you can reproduce, or at minimum describe (expected vs
+  actual). → see `bugfix/AGENTS.md`.
+
+One file per item: `backlog/<type>/<slug>.md`. The filename slug is the item's id and its
+`[[wikilink]]` target — keep it short and stable.
+
+## Frontmatter (every item)
+```yaml
+---
+type: feature            # feature | bugfix — matches the subfolder
+status: backlog          # backlog → prd-drafted → building → shipped
+bet: "[[<bet-slug>]]"    # optional — the bet this serves; omit if standalone
+repos: [<repo>]          # repo(s) the work will likely land in
+created: <YYYY-MM-DD>
+prd:                     # set by /intent on register-back, e.g. "<repo>#<branch> (prds/<feature>)"
+---
+```
+- **`status`** lifecycle: `backlog` (just filed) → `prd-drafted` (`/intent` filed a PRD) →
+  `building` (on a feature branch) → `shipped` (merged). Only `/intent` and the human keep
+  this current; the headless harness does not write here.
+- **`bet`** is the output→outcome link. Set it when the item serves a bet; leave it off for a
+  pure bug or unaligned capability. An item serves at most one bet — if it serves two, it's
+  probably two items.
+
+## Don't maintain an index — query
+To see everything serving a bet, query the frontmatter (in `roadmap.md` or anywhere):
+~~~
+```dataview
+TABLE type, status, prd FROM "<vision>/backlog"
+WHERE bet = [[<bet-slug>]]
+SORT status ASC
+```
+~~~
+
+## The altitude line (don't cross it)
+A backlog item describes **the problem and why it matters** — never the solution. The solution
+is the PRD's job (`/intent` slices the item into one or more `prds/<feature>/`, each with a
+runnable definition of done). Keep the item outcome-shaped; let the PRD be solution-shaped.

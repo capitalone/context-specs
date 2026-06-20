@@ -61,3 +61,5 @@ hit the wrong table, or silently swallowed an error.
 - **This is the step most likely to need project judgment.** Keep the heuristic fixed
   ("does the number trace to a real read of the metric?"); let the per-instrument examples
   evolve for the stack.
+- **Backlog items have no baseline.** A feature/bugfix carries no metric, so there's nothing to
+  read at line 0 — the baseline loop is for bet metrics only.

@@ -145,7 +145,9 @@ Understanding ─▶ Strategy ─▶ Intent ─▶ [ the harness builds ] ─▶
 - **Strategy** ([`/roadmap`](./skills/human-loop/roadmap/SKILL.md)) — sharpen the
   vision into a **bet** on an outcome, with a metric, its instrument, and a
   baseline read *now*. Forces *impact is measurable* the way the PRD runner forces
-  *done is executable* — the escape hatch from the build trap.
+  *done is executable* — the escape hatch from the build trap. The roadmap home is an
+  Obsidian vault that also holds a **unified backlog** (features + bugfixes) serving the
+  bets; `/intent` registers each PRD it builds back onto its item, tying output to outcome.
 - **Intent** ([`/intent`](./skills/human-loop/intent/SKILL.md)) — turn that
   understanding into a PRD plus a runnable definition of done.
 - **Evaluate** ([`/evaluate-pr`](./skills/human-loop/evaluate-pr/SKILL.md) +

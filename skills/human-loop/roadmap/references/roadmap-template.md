@@ -15,13 +15,21 @@ surfaced it** (R10). Never emit an empty section to "be thorough."
 <home>/                             # repo root (multi-repo) OR roadmap/ folder (single-repo)
   AGENTS.md                         # static orientation — taxonomy + folder conventions (assets/AGENTS.md.template)
   <vision-name>/
-    roadmap.md                      # this file's skeleton — vision + strategic intent + backlog
+    roadmap.md                      # this file's skeleton — vision + strategic intent + candidate bets
     bets/<bet-slug>/bet.md          # one per bet
+    backlog/                        # unified work backlog — features + bugfixes (see backlog/AGENTS.md)
+      AGENTS.md                     # backlog conventions (frontmatter, types) — the item schema lives here
+      feature/<slug>.md             # one per feature item
+      bugfix/<slug>.md              # one per bugfix item
     metrics/<metric-slug>/
       measure-outcome.sh            # the probe (see probe-recipes.md)
       query.sql | rubric.md         # what the probe reads (instrument-dependent)
       readings.log                  # append-only; line 0 is the baseline
 ```
+
+This file holds the `roadmap.md` and `bet.md` skeletons. **Backlog-item shapes are not here** —
+they live in the home's `backlog/AGENTS.md` and `backlog/{feature,bugfix}/AGENTS.md` (scaffolded
+from `assets/backlog/…`), so the schema has one home.
 
 ## `<vision-name>/roadmap.md` (always)
 
@@ -40,9 +48,11 @@ Not a feature list, not a metric. This is the "North Star document" in miniature
 (One strategic intent for a focused product; up to ~three for a large org — more is
 peanut-buttering. Each is a focus + a lagging outcome.)
 
-## Backlog (problems, not features — loose and expected to churn)
+## Candidate bets (problems worth betting on someday — loose and expected to churn)
 - <problem worth betting on someday, named not specced>
 - <another>
+(Concrete work — features and bugfixes — lives in `backlog/`, not here. This list is future
+*bets*, not a task list.)
 ```
 
 ## `bets/<bet-slug>/bet.md` (always)
@@ -72,9 +82,10 @@ reason — e.g. a proxy is the only readable signal.)
 - <repo where a slice will likely land> — <why>
 - (one entry for a single-repo product; several for a multi-repo bet)
 
-## Slices (human-maintained — filled in as /intent files PRDs)
+## Slices (registered by /intent as it files PRDs against this bet's backlog items)
 - <repo>#<branch> (`prds/<feature>`) — <status>
-- (left empty at roadmap time; updated by hand as work ships — out of skill scope to sync)
+- (left empty at roadmap time; `/intent` appends a pointer when it files a PRD; a Dataview
+  rollup over `backlog/` `bet:` frontmatter is the fuller view)
 
 ## Status
 shipping        # shipping → evaluate-ready (live end-to-end) → evaluated
@@ -100,10 +111,11 @@ shipping        # shipping → evaluate-ready (live end-to-end) → evaluated
 - **Bets are problems, not features** (R2). If a bet names a component, restate it as the
   outcome the component would produce.
 - **roadmap.md is strategy, not navigation.** It holds the vision, the intent + lagging
-  anchor, and a loose backlog. There is no maintained index anywhere — the folder structure
-  is the map, and `AGENTS.md` (written once) explains what the folders mean.
+  anchor, and a loose list of *candidate bets*. There is no maintained index anywhere — the
+  folder structure is the map, and `AGENTS.md` (written once) explains what the folders mean.
 - **Metrics point to their probe + log; never inline readings.** The time-series lives in
   `readings.log` so the strategy docs stay stable.
-- **Slice pointers are human-maintained.** `/intent` does not write them.
+- **Slice pointers are registered by `/intent`.** When it files a PRD against a backlog item,
+  `/intent` appends the pointer (here and on the item) — output tied back to outcome.
 - **Horizon is mandatory** on a bet — without it, "did it move?" has no clock and a single
   early read masquerades as a verdict.

@@ -98,9 +98,12 @@ folder tree is the map) over per-vision folders, each holding a few coupled thin
   metric: retention, revenue), with an **instrument** (where the number lives) and a
   **baseline** taken by running the probe against the live world *right now*;
 - the **current bet** — one *problem*, stated as a falsifiable hypothesis that moves
-  a fast **leading** indicator believed to feed the lagging outcome, plus a loose
-  backlog of other problems. There is no single "North Star metric" to crown — a
-  vision runs on a small portfolio of leading and lagging signals.
+  a fast **leading** indicator believed to feed the lagging outcome, plus a loose list
+  of **candidate bets**. There is no single "North Star metric" to crown — a
+  vision runs on a small portfolio of leading and lagging signals;
+- a **unified backlog** — the concrete work (features + bugfixes) that serves the bets.
+  A backlog item carries *no* metric (if it does, it's a bet); it may link up to the bet
+  it serves, so "all work for a bet" is an Obsidian/Dataview query, not a folder.
 
 Its discipline is the mirror of `/intent`'s "failing for the right reason." Where
 the PRD runner forces *done is executable*, the roadmap forces *impact is
@@ -117,6 +120,15 @@ names the problem; it does **not** pre-slice it into features. That slicing is
 `/intent`'s job, done lazily, one bet at a time. The metric lives on the bet, never
 on a PRD — welding a lagging, real-world number onto a deterministic pre-merge
 runner would break the line the whole harness rests on.
+
+The features and bugfixes that serve a bet live in the home's **unified backlog** — the
+*options* a bet spends to move its indicator. This is where "Escaping the Build Trap" earns
+its keep: defining features to serve a bet is not the trap; the trap is mistaking a shipped
+feature list for a moved outcome. So the structure encodes the rule plainly — **a bet is done
+when its metric is read, not when its backlog empties.** The home is an Obsidian vault
+(frontmatter + `[[wikilinks]]`), and the loop closes both ways: `/intent` **registers the PRD
+it builds back** onto its backlog item, so output is always traceable to the outcome it's
+meant to move.
 
 For a single-repo product the roadmap home is a `roadmap/` folder beside `prds/`;
 for a product spanning repos (a UI repo, an API repo) it is its **own repo**, above
@@ -158,10 +170,10 @@ restating because it's where your thinking does its work:
 `/intent` is a *coordinator, not a knowledge holder* — the domain reasoning comes
 from the Expert. Your contribution is the understanding and the bet from the
 previous phases, and the judgment about what's worth building. When the feature
-serves a roadmap bet, `/intent` can read that bet (you pass its path inline) and
-let the bet's problem and metric sharpen the PRD's *why* — but the metric stays
-rationale, never a runner check. Confirm the PRD, and the machine takes it from
-there.
+serves a roadmap **bet or backlog item**, `/intent` reads it (you pass the home's path
+inline) and lets its problem and metric sharpen the PRD's *why* — but the metric stays
+rationale, never a runner check — then **registers the PRD back** onto that item so the
+build traces to the outcome. Confirm the PRD, and the machine takes it from there.
 
 ## Evaluate — `/evaluate-pr`, `/evaluate-sessions`, and `/evaluate-outcome`
 
@@ -190,7 +202,10 @@ you understand this change?" and skipping the walk-through is an explicit
 opt-out, never a silent rubber-stamp.
 
 If the walk surfaces something to change, **you fix it here and push** — you
-never hand work back to the loop. You are the last mile.
+never hand work back to the loop. You are the last mile. And if it surfaces necessary
+work that's *out of scope* for this PR — a missing-but-obvious feature, a bug to fix
+later — and a roadmap home is present, you file it into that home's **backlog** with the
+human, where the next `/roadmap` or `/intent` pass will pick it up.
 
 ### `/evaluate-sessions` — evaluate *how it was built*
 
