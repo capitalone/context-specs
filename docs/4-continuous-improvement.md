@@ -1,6 +1,6 @@
 # Chapter 4 — Continuous improvement
 
-*Layer 2 — the harness gets better every merge.*
+*The flywheel — the harness gets better every merge.*
 
 A harness that only built features would be a fast worker with no memory. Each
 feature would start from the same blank slate; the same hard-won lesson — *this
@@ -123,7 +123,7 @@ Inside the Expert, the files are kept small and topic-focused, cross-linked with
 and follows links to the rest — progressive disclosure, so consulting memory
 never means loading all of it.
 
-## What you have at the end of Layer 2
+## What you have at the end of this chapter
 
 A project that not only builds features unattended, but gets measurably easier to
 build the next feature in — because every merge that taught something durable put

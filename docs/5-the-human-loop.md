@@ -1,6 +1,6 @@
 # Chapter 5 — The human loop
 
-*Layer 3 — freed from typing, you improve the harness.*
+*Freed from typing, you improve the harness.*
 
 Chapters 3 and 4 built a machine that builds and remembers. This chapter is about
 what you do now that it does. The honest answer is: **the most important part** —

@@ -1,90 +1,101 @@
 # Context Specs
 
-**Context engineering for agent-first development.**
+**Harness engineering in practice.**
 
-The biggest lever you have when building with a coding agent is what goes into
-its context window — and what stays out. Context Specs is that lever, pulled at
-three layers that build on each other. Pull all three and the work inverts: you
-describe a feature and pin down what "done" means, then the project plans it,
-implements it, verifies it, and hands you a finished pull request. What's left
-for you is the judgment a model can't supply — understanding the problem,
-deciding what's worth building, and telling whether what came back is right.
+Harness engineering is building a system — defined inputs, defined outputs —
+out of deterministic code and probabilistic code, where the deterministic code
+invokes the probabilistic code and controls the flow all the way to a
+guaranteed, well-defined output.
+*([What is Harness Engineering?](https://www.linkedin.com/pulse/what-harness-engineering-rico-romero-vb7fc/))*
 
-It ships as composable [Agent Skills](#installation). Install once, invoke via
-slash commands, extend with your organization's own expertise.
+Context Specs is that system for building software. The **input** is a PRD with
+a runnable definition of done. The **output** is a pull request that is either
+**ready to merge** or **STUCK with a diagnosis** — never "maybe." In between: a
+deterministic dispatcher that plans, validates, implements, verifies, and
+answers the reviewer by driving fresh coding-agent processes, one bounded step
+at a time. What's left for you is the judgment a model can't supply —
+understanding the problem, deciding what's worth building, and telling whether
+what came back is right.
 
-> **New here? Read [the full story](./docs/README.md)** — six short chapters that
-> take you from the idea to the mindset shift, in order.
+The output is also your feedback signal. Every STUCK and every review finding
+points at a piece of *context* to improve — the project's long-term memory, its
+contract, its lints. Improve those and the ready-to-merge ratio climbs: the
+system gets better at building your project every time it builds.
 
----
-
-## The idea: the right context at the right time
-
-A coding agent is only ever as good as the context it's reasoning over — the
-actual tokens in its window at the moment it decides. That window is finite, and
-it degrades: older instructions lose influence, autonomously-retrieved files
-crowd out relevant ones, and compaction silently drops things when it fills.
-
-Context engineering is the discipline of getting the right context into that
-window at the right time, and keeping everything else out — the agent reading
-what it needs, when it needs it, from files it can navigate on its own. The three
-layers below are that same idea at a widening scope: first one feature, then a
-whole project that builds itself, then the way you work day to day.
-
-→ [Chapter 1 — Context engineering](./docs/1-context-engineering.md)
+> **New here? Read [the full story](./docs/README.md)** — six short chapters
+> that take you from the idea to the mindset shift, in order.
 
 ---
 
-## Layer 1 — Spec-Driven Development
+## Quickstart
 
-*Context engineering, applied to building one feature. Usable on its own.*
+```bash
+# 1 · Create your harness (one repo that drives all your projects)
+npx context-specs init my-harness
+cd my-harness
 
-![Experts](./experts.png)
+# 2 · Register a project as an environment
+context-specs add ~/code/myapp
 
-You create **domain experts** from your own documentation with
-[`/expert-sdd-creator`](./skills/sdd/expert-sdd-creator/SKILL.md) —
-define the knowledge once, and it flows automatically through every phase:
+# 3 · The Software 3.0 half: generate the project-specific pieces
+cd ~/code/myapp && claude
+> /env-init          # AGENTS.md, /intent, the Expert, checks, bootstrap — one PR
 
-1. **Spec Planning** ([`/spec-planning`](./skills/sdd/spec-planning/SKILL.md)) —
-   research the codebase, pull in matching experts, and write the plan to disk as
-   a **mainspec** plus temporally-ordered **slices**. Planning lives *outside* the
-   context window, so it can't decay or compact away; slicing feeds the
-   implementer only the piece it's working on.
-2. **Spec Validation** ([`/spec-validate`](./skills/sdd/spec-validate/SKILL.md)) —
-   3+ independent Opus reviewers plus expert review, with consensus scoring
-   (3/3 = very high, 2/3 = high) turning agreement into a confidence signal.
-   Impactful findings are applied in place.
-3. **Implementation** ([`/implement-mainspec`](./skills/sdd/implement-mainspec/SKILL.md)) —
-   slices implemented in dependency order, one at a time on the feature branch.
-   Each slice is verified by its unit tests, then a **Reflect** step (below) feeds
-   what the implementer learned back into the expert.
+# 4 · After that PR merges: walk away
+context-specs start
+```
 
-**Composable, not hardcoded.** Multiple experts activate for one feature — a
-React expert and a DynamoDB expert both contribute on a full-stack change. Add or
-remove experts without touching any existing skill; organizations layer in
-private experts for internal libraries the same way.
+From then on you live in a three-beat cycle — **express intent, the harness
+builds, you evaluate**:
 
-**Reflection is the other half of what an expert is.** Where the expert curates
-context *before* implementation, Reflection updates it *after*: once a slice's code
-and unit tests are green, the implementer judges whether what it learned — a new
-pattern, or a spec that contradicted the codebase — should change the project's
-long-term memory, and writes it back to the expert. The bar is high; most slices
-change nothing.
+```mermaid
+flowchart LR
+  Intent["/intent\nyou express intent"] --> Build["build loop\nplans → builds the PR"]
+  Build --> Eval["/evaluate-pr · /evaluate-sessions\nyou understand it"]
+  Eval --> Merge["merge"]
+  Merge --> Learn["learn loop\nupdates memory → PR"]
+  Learn --> Intent
+```
 
-→ [Chapter 2 — Spec-Driven Development](./docs/2-spec-driven-development.md)
+`context-specs status` shows every environment's features and phases;
+`run <env>` does one foreground pass; `logs <env> -f` follows the loop;
+`doctor` checks the wiring.
 
 ---
 
-## Layer 2 — The agent harness
+## The architecture: one harness, N environments
 
-*Your project runs the Layer 1 loop for you — and gets better every merge.*
+```
+HARNESS REPO (tier 1 — yours, one)      ENVIRONMENT REPOS (tier 2 — your projects)
+  bin/context-specs   the CLI             AGENTS.md               the eager contract
+  scripts/            the dispatchers     .claude/skills/intent/  project-owned /intent
+  skills/             canonical skills    .claude/skills/expert/  long-term memory
+  state/<env>/        runtime state       scripts/                bootstrap + local checks
+                                          .harness/env            this env's dials
+```
 
-The whole promise, in one sequence:
+The dividing line is one test: **could you write it without reading the
+project's code?** Yes → harness repo; improve it once and every environment
+benefits. No → it's *Software 3.0* — generated by an agent reading that
+project, committed to that project, evolving with it. `context-specs add`
+connects the tiers by symlinking the canonical skills into each environment
+(gitignored); `/env-init` generates the project-owned half.
 
-> Describe a feature to [`/intent`](./skills/human-loop/intent/SKILL.md) and confirm
-> it. Walk away. The project plans the feature, validates the plan, implements
-> it, runs its checks, opens a pull request, answers the reviewer — and hands you
-> back a PR that's ready to merge.
+Two artifacts are deliberately project-owned rather than shared, because they
+are the two **developer-owned levers**:
+
+- **`/intent`** — the input side. How well a project turns an idea into a PRD +
+  runnable definition of done is one of the biggest levers it has; tune the
+  skill to your project.
+- **The Expert** — the memory side. The project's long-term memory, which
+  informs every future plan. The loops file things into it; you shape it.
+
+## The system, end to end
+
+> Describe a feature to `/intent` and confirm it. Walk away. The project plans
+> the feature, validates the plan, implements it, runs its checks, opens a pull
+> request, answers the reviewer — and hands you back a PR that's ready to merge,
+> or an honest STUCK with the diagnosis started.
 
 ```mermaid
 flowchart LR
@@ -99,39 +110,61 @@ flowchart LR
 ```
 
 You can trust a machine to run this unattended because it keeps **no hidden
-state**. The complete state of every feature is observable from the files on disk
-and the branches in git. A small, deterministic dispatcher — **no LLM in the loop**
-— reads that state each tick and shells out to a fresh `claude -p` process per
-step, so no step inherits another's polluted window and crash recovery is free.
-Four layers of verification (pre-commit, slice unit tests, `local-checks`, and a
-runnable `run-prd-test.sh` definition of done) can't be talked past — and when a
-step genuinely can't make progress, the harness stops and hands you a
-**diagnosis-first** report rather than faking success.
+state**: every feature's state is observable from files on disk and branches in
+git. A small deterministic dispatcher — **no LLM in the decision path** — reads
+that state each tick and shells out to a fresh `claude -p` process per step, so
+no step inherits another's polluted window and crash recovery is free. It never
+touches your checkout: it works your repo's *refs* and its own sibling
+worktrees. Four layers of verification (pre-commit, slice tests,
+`local-checks`, and a runnable `run-prd-test.sh` definition of done) can't be
+talked past — and the loop is **goal-based**: the runner *is* the goal, and the
+dispatcher keeps invoking the agent until it exits 0 or a bounded retry cap
+turns honest failure into STUCK.
 
-**It also remembers.** When code lands on `main`, the harness updates its own
-long-term memory: [`/learn`](./skills/harness/learn/SKILL.md) reads the
-merged diff and routes what's worth keeping into the Expert, the `AGENTS.md` map,
-or a custom lint the agent can't ship past — so the next feature starts knowing
-what the last one taught. One write path, ground truth only, behind a human
-merge.
+The scheduling is one exit code: a tick that advanced work re-fires
+immediately (work drains at machine speed), an idle tick naps the interval, a
+stuck feature never hot-loops. That's the whole deterministic half —
+[read the invariants](./docs/invariants.md) for the proof it's safe to leave
+running.
 
-Setting all this up is itself a guided skill:
-[`/harness-init`](./skills/harness/harness-init/SKILL.md).
+→ [Chapter 3 — The agent harness](./docs/3-the-agent-harness.md)
 
-→ [Chapter 3 — The agent harness](./docs/3-the-agent-harness.md) ·
+## Memory: long-term informs short-term
+
+**SDD is the harness's short-term memory.** `/spec-planning` writes the plan for
+one feature — a mainspec plus temporally-ordered slices — to disk, *outside* the
+context window, so it can't decay or compact away; the implementer is fed one
+slice at a time, the right context at the right time, no human routing needed.
+
+**The Expert is the long-term memory** — and short-term memory is written *from*
+it: every plan is informed by what the project already knows. Improve one shard
+of long-term memory and every future feature plans better. It's written back on
+two rhythms:
+
+- **Reflection** — in the hot path. After each slice goes green, the implementer
+  judges whether what it learned should change the project's memory. High bar;
+  most slices change nothing.
+- **`/learn`** — off the hot path. After each merge, the memory loop reads the
+  merged diff and routes what's worth keeping into the Expert, `AGENTS.md`, or a
+  custom lint the agent can't ship past — then raises its own `learn/<sha>` PR.
+  The project consolidating what it learned while nothing is running — the way
+  agentic systems "dream."
+
+One write path per rhythm, ground truth only, always behind a human merge — and
+the third write path is **you**. The Expert is developer-owned; the loops are
+helpers.
+
+→ [Chapter 2 — Spec-Driven Development](./docs/2-spec-driven-development.md) ·
 [Chapter 4 — Continuous improvement](./docs/4-continuous-improvement.md)
 
----
-
-## Layer 3 — The human loop
+## The human loop
 
 *Once the machine does the typing, what's left is the part only you can do.*
 
-The governing line is Karpathy's: *you can outsource your thinking, but you can't
-outsource your understanding.* The harness took the verifiable work — syntax, API
-recall, mechanics. The human loop is you, working the unverifiable: whether this
-is the right thing to build, whether the abstraction is sound, whether it feels
-right.
+The governing line is Karpathy's: *you can outsource your thinking, but you
+can't outsource your understanding.* The harness took the verifiable work. The
+human loop is you, working the unverifiable: whether this is the right thing to
+build, whether the abstraction is sound, whether it feels right.
 
 ```
 Understanding ──▶ Intent ──▶ [ the harness builds ] ──▶ Evaluate
@@ -139,17 +172,14 @@ Understanding ──▶ Intent ──▶ [ the harness builds ] ──▶ Evalua
                                                         /evaluate-sessions
 ```
 
-- **Understanding** ([`/wiki-init`](./skills/human-loop/wiki-init/SKILL.md)) —
-  a Karpathy "LLM Wiki" that builds *your* model of the problem space, so you
-  arrive at Intent with sharper questions.
-- **Intent** ([`/intent`](./skills/human-loop/intent/SKILL.md)) — turn that
-  understanding into a PRD plus a runnable definition of done.
-- **Evaluate** ([`/evaluate-pr`](./skills/human-loop/evaluate-pr/SKILL.md) +
-  [`/evaluate-sessions`](./skills/human-loop/evaluate-sessions/SKILL.md)) —
-  walk the change to build real understanding, *and* read the build trail to find
-  where the project's context served the agents or failed them. The flywheel:
-  *observe a trace → capture it as an eval → fix the context → it persists as a
-  regression test.*
+- **Understanding** (`/wiki-init`) — a Karpathy "LLM Wiki" that builds *your*
+  model of the problem space, so you arrive at Intent with sharper questions.
+- **Intent** (`/intent`) — turn that understanding into a PRD plus a runnable
+  definition of done: the system's input, and its goal.
+- **Evaluate** (`/evaluate-pr` + `/evaluate-sessions`) — walk the change to
+  build real understanding, *and* read the build trail to find where the
+  project's context served the agents or failed them. The flywheel: *observe a
+  trace → capture it as an eval → fix the context → it persists.*
 
 Your loop's output is the harness's input; the harness's output is your loop's
 input. When you evaluate, you don't just approve work — you improve the thing
@@ -157,135 +187,52 @@ that produced it.
 
 → [Chapter 5 — The human loop](./docs/5-the-human-loop.md)
 
----
-
 ## The shift
 
-Put the three layers together and your project stops being a codebase you type
-into and becomes a **harness you tune**. The code is an output of the system; your
+Put it together and your project stops being a codebase you type into and
+becomes a **harness you tune**. The code is an output of the system; your
 attention moves from syntax to context. Three things stay yours: deep
 understanding of the problem space, theorizing and expressing intent, and
 evaluating outcomes to improve the context so every future feature benefits.
 
 A codebase you type into is a constant cost. A harness you tune is an
-appreciating asset — each feature leaves it a little more capable of building the
-next one.
+appreciating asset — each feature leaves it a little more capable of building
+the next one.
 
 → [Chapter 6 — The mindset shift](./docs/6-the-mindset-shift.md)
 
 ---
 
-## Getting started
+## The pieces
 
-**Set it up once.** [Install the skills](#installation), then run
-[`/harness-init`](./skills/harness/harness-init/SKILL.md) — a guided setup that
-builds your project's custom harness and provisions its worktrees. It runs as
-**two independent loops, each in its own long-lived session.** Start them:
-
-```bash
-# session 1 — the build loop (features)
-/loop 5m /poll-and-dispatch
-
-# session 2 — the memory loop (/learn), in a SEPARATE session
-/loop 10m /learn-loop
-```
-
-*(Optionally run [`/wiki-init`](./skills/human-loop/wiki-init/SKILL.md) first to
-build your own understanding of the problem space before you write intent.)*
-
-With both loops running, you live in a three-beat cycle: you express intent, the
-harness builds, and you evaluate what comes back.
-
-```mermaid
-flowchart LR
-  Intent["/intent\nyou express intent"] --> Build["build loop\nplans → builds the PR"]
-  Build --> Eval["/evaluate-pr · /evaluate-sessions\nyou understand it"]
-  Eval --> Merge["merge"]
-  Merge --> Learn["learn loop\nupdates memory → PR"]
-  Learn --> Intent
-```
-
-**1 · You express intent (human loop, before).** `/intent` a feature — a PRD plus
-a runnable definition of done. That PRD is the harness's input.
-
-**2 · The harness builds (two loops).**
-- **The build loop** (`/loop 5m /poll-and-dispatch`) picks up your intent and runs
-  the SDD chain — plan, validate, implement, verify — all the way to an open PR.
-- **The memory loop** (`/loop 10m /learn-loop`) watches `main`. Every merge is a
-  chance to add memory, or remove a memory a change has made stale. It raises a
-  *separate* PR for those memory updates, so long-term learning never blocks the
-  build loop. The two coordinate only through git.
-
-**3 · You evaluate (human loop, after).**
-- **`/evaluate-pr`** — the goal here is *understanding* the change, not reaching a
-  verdict. Approving, requesting changes, or closing are byproducts of that
-  understanding; the understanding itself is what lets you write sharper intent
-  next time.
-- **`/evaluate-sessions`** — for when the outcome was off, whether the harness got
-  **STUCK** or the PR was wrong on review. This is usually a context issue: with
-  the right context, the agent could have done the task. Evaluate-sessions reads every session
-  that led to the PR — intent, spec-planning, spec-validate, implementation — to
-  locate the **context gap**. Fixing the context matters more than fixing
-  the code: the code fix repairs this one feature, while the context fix keeps the same mistake out of every future feature.
-
-Your intent is the harness's input; the harness's PR is your evaluation's input; evaluating
-improves the context that feeds the next round. That's the cycle you live in.
-
-*(Only want the spec workflow? Layer 1 stands on its own — drive `/spec-planning`
-→ `/spec-validate` → `/implement-mainspec` by hand, no harness needed.)*
-
----
-
-## Installation
-
-Context Specs has two kinds of installable content — **skills** and
-**subagents** — each with its own step.
-
-### Skills
-
-```bash
-npx skills add https://github.com/capitalone/context-specs
-```
-
-Installs all skills into your project's `.claude/skills/` directory.
-
-### Subagents
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/capitalone/context-specs/main/install-agents.sh | bash
-```
-
-Run from your target project directory. Copies agent definitions (e.g.
-`slice-implementer.md`) into `.claude/agents/`. Safe to re-run.
-
----
-
-## The skills
-
-| Layer | Skill | Does |
+| Where | Piece | Does |
 |---|---|---|
-| **1 · SDD** | `/expert-sdd-creator` | Create a domain expert from your docs |
-| | `/spec-planning` | Idea → mainspec + temporal slices |
-| | `/spec-validate` | Multi-agent consensus + expert review |
-| | `/implement-slice`, `/implement-mainspec` | Implement slices sequentially with unit tests + Reflect |
-| **2 · Harness** | `/harness-init` | Guided setup of the local harness |
+| **CLI** | `init` / `add` / `link` | Create the harness repo; register environments; symlink skills |
+| | `start` / `stop` / `run` | Supervise the loops (drain-on-advance) / one foreground pass |
+| | `status` / `logs` / `doctor` | Observe every environment; check the wiring |
+| **Dispatchers** | `scripts/poll-and-dispatch.sh` | The build loop: PRD → PR, one deterministic step per tick |
+| | `scripts/learn-dispatch.sh` | The memory loop: merged diff → `learn/<sha>` PR |
+| **SDD skills** | `/spec-planning` | PRD → mainspec + temporal slices (short-term memory) |
+| | `/spec-validate` | Multi-agent consensus review of the plan |
+| | `/implement-mainspec`, `/implement-slice` | Implement slices in order, unit tests + Reflect |
+| **Harness skills** | `/env-init` | Guided setup of a project as an environment |
 | | `/fix-local-checks` | Honest fixes for a failing pre-PR gate |
 | | `/address-feedback` | Triage and answer reviewer findings |
 | | `/learn` | Post-merge long-term memory update |
-| **3 · Human loop** | `/wiki-init` | Stand up a Karpathy LLM-wiki (Understanding) |
-| | `/intent` | Idea → PRD + runnable definition of done |
+| **Human loop** | `/wiki-init` | Stand up a Karpathy LLM-wiki (Understanding) |
+| | `/intent` | Idea → PRD + runnable definition of done (project-owned) |
 | | `/evaluate-pr` | Evaluate the change; build understanding |
 | | `/evaluate-sessions` | Evaluate the build trail; capture evals |
 
----
+*(Only want the spec workflow? It stands alone — symlink or copy the SDD skills
+and drive `/spec-planning` → `/spec-validate` → `/implement-mainspec` by hand.
+No harness needed.)*
 
 ## Documentation
 
 - **[The full story](./docs/README.md)** — the six chapters, read in order.
 - **[Design invariants](./docs/invariants.md)** — the properties that make the
   harness safe to leave running.
-
----
 
 ## License
 

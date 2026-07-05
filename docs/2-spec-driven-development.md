@@ -1,6 +1,6 @@
 # Chapter 2 — Spec-Driven Development
 
-*Layer 1 — context engineering, applied to building one feature.*
+*Context engineering, applied to building one feature — the harness’s short-term memory.*
 
 The smallest complete unit of work is a feature: take an idea, turn it into code
 that works. Spec-Driven Development (SDD) is what happens when you treat that as
@@ -9,7 +9,7 @@ a context-engineering problem rather than a typing problem.
 The question from Chapter 1 — *what is the right context, and how does it reach
 the window at the right moment?* — has a concrete answer here, and Context Specs
 ships it as a handful of Agent Skills. **This layer needs nothing else in this
-book.** You can `npx skills add` it today and use it by hand on any project, with
+book.** You can link or copy these skills into any project today and drive them by hand, with
 or without the harness in later chapters.
 
 ## The problem SDD solves
@@ -35,19 +35,17 @@ project's accumulated knowledge: how this codebase is layered, how it tests new
 routes, which patterns to reach for and which to avoid. Re-explaining that every
 session is exactly the context decay Chapter 1 warned about.
 
-An **Expert** externalizes it. You create one from your own documentation —
-framework docs, an internal library guide, architecture notes — with
-[`/expert-sdd-creator`](../skills/sdd/expert-sdd-creator/SKILL.md), and
-it generates a complete, progressively-disclosed knowledge module:
+An **Expert** externalizes it as a progressively-disclosed knowledge module.
+Your project's own Expert — its long-term memory — is seeded as a skeleton by
+`/env-init` and grows from there (Chapter 4); you can add further Experts for
+external domains (an internal library, a framework) the same way, as
+`expert-{name}/` skills alongside it:
 
 ```
-expert-{name}/
-├── SKILL.md          # high-level pointer, read first
-├── references/       # dense knowledge, read only when relevant
-│   ├── {topic}.md
-│   └── signal-workflow.md
-└── scripts/
-    └── run_signal.sh
+expert/                # (or expert-{name}/ for an outside domain)
+├── SKILL.md           # high-level index + routing table, read first
+└── references/        # dense knowledge, one topic per file, read on demand
+    └── {prefix}-{topic}.md
 ```
 
 The Expert is the menu from Chapter 1 made concrete: a short `SKILL.md` the agent
@@ -158,7 +156,7 @@ orchestrator's window lean and every commit reviewable.
 The feedback loop runs **per slice**, not just at the end — the agent knows
 whether it's on track as it goes, not after.
 
-## What you have at the end of Layer 1
+## What you have at the end of this chapter
 
 A repeatable way to take one feature from idea to working code while keeping the
 agent's window full of exactly the right context and nothing else: knowledge
