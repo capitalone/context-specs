@@ -1,0 +1,66 @@
+#!/usr/bin/env node
+'use strict';
+// context-specs — the deterministic half of the harness.
+//
+// Tier 1 (harness repo) owned. Everything here is plain code: registering
+// environments, symlinking the canonical skills into them, and supervising the
+// dispatcher loops. The probabilistic half (project-specific setup) lives in
+// the /env-init skill, which this CLI hands off to after `add`.
+
+const HELP = `context-specs — set up and run the coding harness across your environments
+
+Usage: context-specs <command> [args]
+
+Setup
+  init [name]            Create (or adopt) a harness repo from the context-specs template
+  add <path> [--name n]  Register an environment repo: symlink skills, write .gitignore
+                         entries, add it to environments.toml. Then run /env-init inside it.
+  remove <name>          Unregister an environment (leaves its files and state in place)
+  link <path>            (Re-)create the skill/agent symlinks in a repo or worktree.
+                         Idempotent; called automatically by bootstrap-worktree.sh.
+
+Run
+  start [name|--all]     Start the background supervisor (build loop + memory loop)
+  stop [name|--all]      Stop the supervisor
+  run [name] [--learn]   One foreground tick, drained to idle. No daemon.
+  status [--fetch]       One-shot table: every environment's features and phases
+  logs <name> [-f] [--learn|--supervisor]   Show (or follow) an environment's logs
+  doctor                 Check the harness, the registry, and every environment
+
+The dispatcher itself is deterministic bash (scripts/poll-and-dispatch.sh);
+this CLI only schedules it. Exit 10 from a tick means "work advanced" and the
+supervisor re-invokes immediately until the environment is idle (exit 0).
+`;
+
+const commands = {
+  init: () => require('../lib/init'),
+  add: () => require('../lib/add'),
+  remove: () => require('../lib/remove'),
+  link: () => require('../lib/link').cli,
+  start: () => require('../lib/supervisor').start,
+  stop: () => require('../lib/supervisor').stop,
+  run: () => require('../lib/supervisor').runOnce,
+  __supervise: () => require('../lib/supervisor').supervise,
+  status: () => require('../lib/status'),
+  logs: () => require('../lib/logs'),
+  doctor: () => require('../lib/doctor'),
+};
+
+async function main() {
+  const [cmd, ...args] = process.argv.slice(2);
+  if (!cmd || cmd === '--help' || cmd === '-h' || cmd === 'help') {
+    process.stdout.write(HELP);
+    process.exit(cmd ? 0 : 1);
+  }
+  const load = commands[cmd];
+  if (!load) {
+    console.error(`context-specs: unknown command '${cmd}'. Run 'context-specs --help'.`);
+    process.exit(1);
+  }
+  await load()(args);
+}
+
+main().catch((err) => {
+  console.error(`context-specs: ${err.message}`);
+  process.exit(1);
+});
