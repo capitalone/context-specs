@@ -274,6 +274,13 @@ for feature in ${in_flight[@]+"${in_flight[@]}"}; do
     && git clean -fd --quiet \
     && git reset --hard "origin/$branch" --quiet )
 
+  # Re-link the tier-1 skill symlinks after the wipe. They're untracked, and on
+  # a branch whose .gitignore predates the managed block (e.g. a PRD filed
+  # before env-init merged), `git clean -fd` just deleted them — and bootstrap
+  # only runs at worktree creation. Idempotent and cheap; never let a skill run
+  # skill-less.
+  "$CONTEXT_SPECS_HOME/bin/context-specs" link "$wt" >/dev/null 2>&1 || true
+
   # State machine: walk forward by exactly one step. Sentinel files gate each
   # transition. Every step has a bounded retry; at cap, signal_stuck posts to the
   # PR (opening one as a draft if necessary) with the step, the session log, an
