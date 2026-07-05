@@ -88,7 +88,7 @@ decision. The ability to skip is the human's, never yours.
   feature worktree (the dispatcher `cd`s into it; there is no print-mode `--cwd`
   flag), after the auto-fix pass left the gate red.
 - **You do NOT track rounds.** The dispatcher owns the counter
-  (`.harness/local-check-attempts-<f>`) and decides when to STUCK. You do one focused
+  (`<harness-repo>/state/<env>/local-check-attempts-<f>`) and decides when to STUCK. You do one focused
   pass per invocation.
 - **Completion:** your commit + push. The dispatcher re-runs `local-checks.sh` next
   tick; if green it moves to PR, if red it re-invokes you (or STUCKs at cap).

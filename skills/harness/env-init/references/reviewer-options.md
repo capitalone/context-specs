@@ -20,7 +20,7 @@ conversational mode).
 
 - **Setup:** drop `assets/workflows/claude-review.yml` into `.github/workflows/`,
   drop `REVIEW.md` at repo root, add the auth secret (next bullet), and **pin**
-  the action: replace `@v1` with the current release tag (harness-init looks up
+  the action: replace `@v1` with the current release tag (env-init looks up
   and pins the latest at setup time).
 - **Auth — two options, pick one:**
   - **`CLAUDE_CODE_OAUTH_TOKEN`** — uses a Claude **Max/Pro subscription**

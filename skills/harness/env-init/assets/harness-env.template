@@ -1,8 +1,9 @@
-# .harness/env — harness configuration, sourced by scripts/poll-and-dispatch.sh
+# .harness/env — this environment's harness configuration.
 #
-# This file is committed so a team's checkouts share defaults. The per-feature
-# COUNTER files in .harness/ (feedback-rounds-*, local-check-attempts-*,
-# last-main-sha) are runtime state and are gitignored — never commit those.
+# Sourced by the tier-1 dispatcher (<harness-repo>/scripts/poll-and-dispatch.sh
+# and learn-dispatch.sh) on every tick. Committed so a team's checkouts share
+# defaults. Runtime state (retry counters, stuck sentinels, session logs) lives
+# in the harness repo under state/<env>/, not in this repo.
 
 # How many features the harness works in parallel.
 #   1 = single worktree, FIFO (recommended default for a single developer).

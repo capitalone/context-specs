@@ -181,7 +181,7 @@ path to point it at; otherwise this wiki is theirs to read and query directly.
 ## Invocation & output contract
 
 - **Invoked by:** a human (`/wiki-init`, optionally `--yolo`). Not the dispatcher — this
-  is a human-attentive setup skill, like `/intent` and `/harness-init`.
+  is a human-attentive setup skill, like `/intent` and `/env-init`.
 - **Outputs:** a standalone wiki vault at the chosen external path — `raw/`, `wiki/`,
   `_meta/`, the tailored conventions doc (`CLAUDE.md`), the three commands under
   `.claude/commands/`, a seeded `MOC.md`, a `README.md`, and an initialized git repo.

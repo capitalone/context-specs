@@ -9,7 +9,7 @@ non-bypassable verification layers. Using the neutral file (rather than a
 tool-specific one) also keeps the project's memory portable and its own — no
 lock-in to a single tool.
 
-harness-init generates it from `assets/AGENTS.md.template` plus a codebase scan
+env-init generates it from `assets/AGENTS.md.template` plus a codebase scan
 (project-discovery.md). Most of the template is canonical and stays verbatim; only
 the bracketed parts are filled from the scan.
 

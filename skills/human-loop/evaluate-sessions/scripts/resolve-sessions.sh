@@ -4,7 +4,7 @@
 # The session table is posted on the PR DETERMINISTICALLY BY THE DISPATCHER
 # (render_sessions_table -> signal_human_review / signal_stuck / signal_learn_review,
 # each ending in `gh pr comment`). That comment is the durable artifact — the local
-# .harness/sessions-<f>.tsv is ephemeral and `rm -f`'d on PR cleanup, so we never read it.
+# The harness repo's state/<env>/sessions-<f>.tsv is ephemeral and rm -f'd on PR cleanup, so we never read it.
 #
 # Output (one line per session, tab-separated):
 #   <session_id>\t<jsonl_path|MISSING>

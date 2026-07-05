@@ -12,10 +12,10 @@ updates the **Expert** (procedural + semantic memory, pulled on demand) and the
 project invariants, and drafts candidate **lints** (the highest-value memory,
 because a lint is a rule the agent cannot ship past).
 
-You run **headless**, invoked by the **memory loop** (`scripts/learn-tick.sh`, driven
-by its own `/loop … /learn-loop`) as the post-merge step — in a dedicated
+You run **headless**, invoked by the **memory loop** (`scripts/learn-dispatch.sh` in the harness repo, driven
+by the `context-specs` supervisor on its own interval) as the post-merge step — in a dedicated
 `../<repo>-harness-learn` worktree on a `learn/<sha>` branch off `origin/main`, never
-in the build loop's host worktree. The memory loop runs independently of the
+in the developer's clone. The memory loop runs independently of the
 feature/build loop, so a from-scratch Expert bootstrap blocks neither. Your output is
 a single reviewable PR — never an auto-merge. Humans steer at merge.
 

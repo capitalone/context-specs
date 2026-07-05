@@ -128,7 +128,7 @@ Pick the lens — it only changes emphasis, not mechanics:
 Run `scripts/resolve-sessions.sh <PR#|feature>`. It parses the **PR comment** (the durable,
 dispatcher-posted artifact) for session IDs and globs `~/.claude/projects/*/<id>.jsonl` for
 each trace, flagging any whose file is missing (a remote/CI run — see the degradation note in
-`references/trace-reading.md`). Do **not** depend on `.harness/sessions-<f>.tsv`; it's
+`references/trace-reading.md`). Do **not** depend on the harness repo’s `state/<env>/sessions-<f>.tsv`; it’s
 ephemeral and deleted on PR cleanup.
 
 ### Step 2 — Triage from the table (S7)
@@ -189,7 +189,7 @@ re-examines the current state.
 ## Hard nevers
 - **Never write `main` or memory autonomously.** Changes land on a branch; `/learn` writes
   memory post-merge from the merged diff (S5).
-- **Never depend on `.harness/sessions-<f>.tsv`.** It's ephemeral and gone post-merge; the PR
+- **Never depend on the harness repo’s `state/<env>/sessions-<f>.tsv`.** It's ephemeral and gone post-merge; the PR
   comment is the contract (S8 / `trace-reading.md`).
 - **Never fabricate an eval that passes trivially.** An eval that doesn't fail against the
   context that misled the agent proves nothing (`references/evals.md`, right-reason check).

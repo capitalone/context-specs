@@ -1,6 +1,6 @@
 # Project discovery — how to read a codebase before generating
 
-Three artifacts harness-init generates are codebase-dependent and must NOT be
+Three artifacts env-init generates are codebase-dependent and must NOT be
 hardcoded: `AGENTS.md`, `scripts/local-checks.sh`, and
 `scripts/bootstrap-worktree.sh`. This file is the shared discovery procedure
 that feeds all three. Run the scan once, then reuse the findings.

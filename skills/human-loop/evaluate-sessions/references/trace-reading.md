@@ -23,7 +23,7 @@ The table is `| Time | Step | Attempt | Session ID | Exit |`, with the step and 
 backtick-wrapped. `scripts/resolve-sessions.sh <PR#|feature>` parses exactly this and emits
 `<session_id>\t<jsonl_path|MISSING>` per row.
 
-**Do not read `.harness/sessions-<f>.tsv`.** It carries an extra `duration_s` column and
+**Do not read the harness repo’s `state/<env>/sessions-<f>.tsv`.** It carries an extra `duration_s` column and
 untruncated rows, but the cleanup pass `rm -f`s it on every merged/closed PR — so for a
 merged PR (the `/learn`-audit case) it's already gone. The PR comment is the contract; the
 TSV is ephemeral working state. (One consequence: `render_sessions_table` does `tail -n 20`
