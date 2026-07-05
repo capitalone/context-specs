@@ -1,0 +1,10 @@
+# environments.toml — the per-machine registry of environments this harness
+# operates on. Your real environments.toml is GITIGNORED (paths differ per
+# developer); this example documents the shape. You never edit it by hand:
+# `context-specs add <path>` and `context-specs remove <name>` manage it.
+#
+# [[environment]]
+# name = "myapp"                 # unique; defaults to the directory basename
+# path = "/home/you/code/myapp"  # absolute path to your clone
+# enabled = true                 # false = skipped by start --all and status
+# interval = 300                 # optional per-env build-tick interval (seconds)

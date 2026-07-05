@@ -7,3 +7,8 @@ __pycache__/
 
 # Harness worktrees (per implement-mainspec parallel mode)
 .claude/worktrees/
+
+# Per-machine harness runtime (managed by the context-specs CLI)
+/state/
+/environments.toml
+node_modules/
