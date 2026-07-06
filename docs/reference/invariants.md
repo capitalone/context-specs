@@ -1,7 +1,7 @@
 # Design invariants
 
-This is the reference companion to the [documentation story](./README.md) —
-specifically [Chapter 3, The agent harness](./3-the-agent-harness.md), which
+This is the reference companion to the [documentation overview](../overview.md) —
+specifically [The dispatcher](../concepts/the-dispatcher.md), which
 gives you the intuition for why the harness is safe to leave running. This
 document gives you the *proof*: it enumerates the properties the harness holds no
 matter what crashes, races, or restarts.
@@ -373,6 +373,6 @@ Each walkthrough names the failure, traces what happens tick by tick, and points
 
 ## See also
 
-- [The documentation story](./README.md) — the narrative these properties underpin, starting from context engineering.
-- [Chapter 3 — The agent harness](./3-the-agent-harness.md) — the intuition for why the harness is safe; this document is its proof.
-- [`scripts/poll-and-dispatch.sh`](../scripts/poll-and-dispatch.sh) — the dispatcher: the canonical realization of these invariants in code.
+- [Documentation overview](../overview.md) — the narrative these properties underpin, starting from context engineering.
+- [The dispatcher](../concepts/the-dispatcher.md) — the intuition for why the harness is safe; this document is its proof.
+- [`scripts/poll-and-dispatch.sh`](../../scripts/poll-and-dispatch.sh) — the dispatcher: the canonical realization of these invariants in code.
