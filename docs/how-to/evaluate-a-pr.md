@@ -52,6 +52,6 @@ work; you improve the thing that produced it.
 
 ## Related
 
-- [Improve from build traces](./improve-from-traces.md) — evaluate *how* it was
+- [Improve your project's context](./improve-context.md) — evaluate *how* it was
   built, not just what.
 - [The human loop](../concepts/the-human-loop.md) — where this phase sits.

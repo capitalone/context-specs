@@ -54,8 +54,8 @@ Task-oriented steps for getting things done.
 - **[Unstick a feature](./how-to/unstick-a-feature.md)** — resolve a STUCK by fixing
   the context first.
 - **[Evaluate a PR](./how-to/evaluate-a-pr.md)** — evaluate *what* was built.
-- **[Improve from build traces](./how-to/improve-from-traces.md)** — evaluate *how*
-  it was built; capture evals and context fixes.
+- **[Improve your project's context](./how-to/improve-context.md)** — the concierge
+  for STUCKs, memory, lints, and evals.
 
 ## Reference
 

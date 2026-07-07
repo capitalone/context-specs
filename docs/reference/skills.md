@@ -47,7 +47,7 @@ See [Long-term memory](../concepts/long-term-memory.md).
 | [`/wiki-init`](../../skills/human-loop/wiki-init/SKILL.md) | Stand up a Karpathy LLM-wiki (Understanding) |
 | [`/intent`](../../skills/human-loop/intent/SKILL.md) | Idea → PRD + runnable definition of done (project-owned) |
 | [`/evaluate-pr`](../../skills/human-loop/evaluate-pr/SKILL.md) | Evaluate the change; build understanding |
-| [`/evaluate-sessions`](../../skills/human-loop/evaluate-sessions/SKILL.md) | Evaluate the build trail; capture evals |
+| [`/improve-context`](../../skills/human-loop/improve-context/SKILL.md) | Concierge for context improvement: STUCK forensics, memory/lint tuning, evals |
 
 See [The human loop](../concepts/the-human-loop.md).
 

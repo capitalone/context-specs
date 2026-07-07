@@ -77,7 +77,7 @@ Strip away the typing and what is left is not less work — it is higher-leverag
 work. [The human loop](./concepts/the-human-loop.md) is the part a harness cannot
 do: **understand** the problem (`/wiki-init`), express **intent** with a real
 definition of done (`/intent`), and **evaluate** what comes back (`/evaluate-pr`,
-`/evaluate-sessions`). When you evaluate, you don't just approve work — you improve
+`/improve-context`). When you evaluate, you don't just approve work — you improve
 the thing that produced it.
 
 Put it together and your project stops being a codebase you type into and becomes a

@@ -52,13 +52,14 @@ other:
   itself a fix prompt. Once written, it protects every future PR. See
   [long-term memory](./long-term-memory.md#lints-the-memory-an-agent-cannot-ship-past).
 - **Evals (the human loop).** Reading the build trail with
-  [`/evaluate-sessions`](../how-to/improve-from-traces.md) surfaces where the
+  [`/improve-context`](../how-to/improve-context.md) surfaces where the
   project's context served or failed the agents. What you find is frozen as a
   runnable eval — a regression test over the harness's *own skills and context* —
   and captured as a context fix.
 - **Unsticking (the forced detour).** Every STUCK you resolve by correcting the
-  misleading context, then merging, feeds that correction into `/learn` as ground
-  truth. See [Unstick a feature](../how-to/unstick-a-feature.md).
+  misleading context, then merging, feeds that correction into `/learn`, which
+  extends it. [`/improve-context <PR#>`](../how-to/improve-context.md) is the front
+  door. See [Unstick a feature](../how-to/unstick-a-feature.md).
 
 The common shape across all four:
 

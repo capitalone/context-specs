@@ -78,7 +78,7 @@ a buildable thing. Its discipline:
 the Expert; your contribution is understanding and the judgment about what is worth
 building. See [Express intent](../how-to/express-intent.md).
 
-## Evaluate — `/evaluate-pr` and `/evaluate-sessions`
+## Evaluate — `/evaluate-pr` and `/improve-context`
 
 The back bookend, and the mirror of `/intent`. There are two skills, because there
 are two things to evaluate.
@@ -91,20 +91,21 @@ are two things to evaluate.
   could be, is the abstraction sound, does the UX feel right? If the walk surfaces
   something to change, **you fix it here and push** — you never hand work back to
   the loop. You are the last mile.
-- **[`/evaluate-sessions`](../how-to/improve-from-traces.md)** — evaluate *how it
-  was built*. This is where the human loop reaches back and improves the harness
-  itself, reading the `claude -p` build trail to find where context served the
-  agents or failed them, and freezing what you find as evals and context fixes. This
-  is the heart of [continuous improvement](./continuous-improvement.md).
+- **[`/improve-context`](../how-to/improve-context.md)** — evaluate and improve *the
+  harness itself*. The concierge for every context lever: it reads a PR's `claude -p`
+  build trail to find where context served the agents or failed them, walks a STUCK's
+  diagnosis-first resolution with you, drives improvements to the Expert, `AGENTS.md`,
+  `/intent`, and the lints, and freezes what you learn as evals. This is the heart of
+  [continuous improvement](./continuous-improvement.md).
 
-## Memory still has one write path
+## Memory writes stay reviewable
 
-Evaluation does *not* write memory directly. Whatever you learn here is not ground
-truth yet, because the change is not merged yet. So the insight either becomes a
-pushed fix that rides into `main` — where `/learn` picks it up — or it lives in your
-head and sharpens the next Intent. Evals and context fixes land on a branch and
-reach memory the same way: through a merge. You may now *seed* memory deliberately;
-you still never bypass the door. See [long-term memory](./long-term-memory.md#one-write-path-ground-truth-only).
+The Expert is yours — you may write it any time, and evaluation is exactly when
+insights worth writing surface: facts you confirmed, and decisions or direction the
+code hasn't caught up to. Keep the writes reviewable: seed them on the branch you're
+evaluating (or a small capture branch) so they ride a PR into `main`, where `/learn`
+treats your edits as authoritative and extends them. See
+[long-term memory](./long-term-memory.md).
 
 ## The three places you steer
 
@@ -115,7 +116,7 @@ one is a phase of this loop:
 |---|---|---|
 | Confirm a PRD | end of **Intent** | starts the build |
 | Evaluate and merge a PR | **Evaluate** | ends the build; triggers `/learn` |
-| Unstick a STUCK feature | a forced detour into **Evaluate** | corrects the context, then merges |
+| Unstick a STUCK feature (`/improve-context`) | a forced detour into **Evaluate** | corrects the context, then merges |
 
 Three touchpoints. Everything between them is the machine. Everything *at* them is
 judgment — yours.
