@@ -102,7 +102,8 @@ signal_human_review() {
     echo
     echo "The reviewer reports no outstanding Important findings. This PR is now"
     echo "yours to **evaluate** — run \`/evaluate-pr ${feature}\` to walk the change,"
-    echo "run it locally, and build a firm understanding before you merge."
+    echo "run it locally, and build a firm understanding before you merge"
+    echo "(\`/improve-context ${feature}\` if you'd rather audit *how* it was built)."
     echo
     echo "**Build sessions** (the full \`claude -p\` trail — open a trace at"
     echo "\`~/.claude/projects/<encoded>/<session-id>.jsonl\` to see what each agent"
@@ -117,7 +118,7 @@ signal_human_review() {
 # Signal STUCK to the human via the PR. Opens a draft PR if none exists yet
 # (planning/validate can STUCK before any PR is open). Body includes the step,
 # the cap, the per-feature session log (failing step + upstream chain), an
-# optional tail of failing output, and the diagnosis-first checklist. The PR is
+# optional tail of failing output, and a pointer to /improve-context. The PR is
 # the single human-facing surface; nothing else is captured to disk for the human.
 signal_stuck() {
   local feature="$1" step="$2" cap="$3" output_file="${4:-}"
@@ -146,17 +147,18 @@ signal_stuck() {
       echo '```'
       echo
     fi
-    echo "## Diagnosis-first"
+    echo "## Next step: /improve-context"
     echo
-    echo "Your **first** job is not the code — it is to identify which piece of"
-    echo "context (\`AGENTS.md\`, an Expert reference file, a spec, or the PRD) misled the"
-    echo "agent or was missing. Correct it on this branch *before* the code fix;"
-    echo "the merge carries both into main and \`/learn\` picks up the context fix."
+    echo "Diagnosis-first: the context that misled the agent gets fixed before the code."
+    echo "In the project repo, run:"
     echo
-    echo "- [ ] **Context defect identified:** \`<file:line>\` — \`<one-line>\`"
-    echo "- [ ] Corrected the context on this branch (AGENTS.md / Expert / spec / PRD)"
-    echo "- [ ] Code fixed; \`./prds/${feature}/run-prd-test.sh\` passes locally"
-    echo "- [ ] Ready to merge"
+    echo '```'
+    echo "claude"
+    echo "> /improve-context ${feature}"
+    echo '```'
+    echo
+    echo "It reads these sessions with you, finds the context defect, fixes it on this"
+    echo "branch, then the code — the merge carries both and \`/learn\` picks them up."
   } > "$body"
   if ghe pr view "$branch" >/dev/null 2>&1; then
     ghe pr comment "$branch" --body-file "$body" 2>/dev/null || true
@@ -284,7 +286,7 @@ for feature in ${in_flight[@]+"${in_flight[@]}"}; do
   # State machine: walk forward by exactly one step. Sentinel files gate each
   # transition. Every step has a bounded retry; at cap, signal_stuck posts to the
   # PR (opening one as a draft if necessary) with the step, the session log, an
-  # optional failing-output tail, and the diagnosis-first checklist. The stuck
+  # optional failing-output tail, and a pointer to /improve-context. The stuck
   # sentinel above halts further advance until the human merges or closes.
   if   [[ ! -f "${wt}/specs/${feature}/.planning-done" ]]; then
        attempts_file="$STATE_DIR/planning-attempts-${feature}"
@@ -437,9 +439,10 @@ done
 # learn/<sha>). See references/dispatcher-explained.md ("The memory loop").
 
 # STUCK escalation is handled inline in step 3 by signal_stuck (which opens or
-# comments on the PR with the session log + checklist). The human takes over
-# from there — diagnoses the context defect first, corrects it on the branch,
-# fixes the code, then merges. /learn picks up the context correction at merge.
+# comments on the PR with the session log + a pointer to /improve-context — the
+# front door for resolution). The human takes over from there — diagnoses the
+# context defect first, corrects it on the branch, fixes the code, then merges.
+# /learn picks up the context correction at merge.
 
 # Exit contract for the supervisor: 10 = advanced (re-invoke immediately to
 # drain), 0 = idle (sleep the full interval). STUCK-only ticks made no

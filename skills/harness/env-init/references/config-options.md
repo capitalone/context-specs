@@ -36,7 +36,7 @@ Which PRD branches this harness claims. `<your-slug>` derives from
 
 Bounded-retry circuit breakers — every step has one, so the loop can't run away.
 At cap, the dispatcher signals STUCK on the PR (opening it as a draft if no PR
-exists yet) with the session log + a diagnosis-first checklist, and halts that
+exists yet) with the session log + a pointer to `/improve-context`, and halts that
 feature. A STUCK-only tick exits 0, so a stuck environment never hot-loops.
 
 | Var | Default | Step it bounds |

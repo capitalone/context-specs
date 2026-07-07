@@ -8,27 +8,37 @@ and it is one of the three places you steer the machine.
 
 ## What the harness hands you
 
-A STUCK PR comes with everything you need to diagnose it:
+A STUCK PR comes with everything needed to diagnose it:
 
+- The **step that capped** and its retry budget.
 - A **session log** of every `claude -p` invocation across the chain — open any
   trace and see exactly what the agent saw.
 - A **tail of the failing output**.
-- A **diagnosis-first checklist**.
+- One instruction: run **`/improve-context <PR#>`**.
 
 ## Steps
 
-Work the checklist in order — and note that its first item is *not* "fix the code":
+You don't need to hold the forensics machinery in your head — the skill does:
 
-1. **Identify which piece of context misled the agent.** A stale Expert note, a
-   thin spec, a PRD that left something out, an environment the agent could not
-   navigate. Read the trace to find where it went wrong.
-2. **Fix that context first.** Correct the Expert reference, sharpen the
-   definition of done, add the missing detail. This is the
+```bash
+cd ~/code/myapp
+claude
+> /improve-context <PR# or feature>
+```
+
+1. It resolves the session IDs to local traces and reads the trail *with* you,
+   tracing the cause upstream of the symptom.
+2. Together you **identify which piece of context misled the agent** — a stale
+   Expert note, a thin spec, a PRD gap, an environment the agent couldn't
+   navigate — and **fix that context first, on the PR's branch**. This is the
    [context-gap fix](../concepts/continuous-improvement.md#two-ways-to-fix-a-problem-very-different-leverage)
-   that stops the *class* of failure, not just this instance.
-3. **Then make the feature pass** on its branch, honestly — never by silencing a
-   check.
-4. **Merge.**
+   that stops the *class* of failure, not just this instance. (Sometimes the
+   task was just hard and no context change would have helped — naming that is
+   a valid outcome too.)
+3. **Then it fixes the code** until `run-prd-test.sh` passes honestly — never by
+   silencing a check — and offers to freeze the learning as an
+   [eval](./improve-context.md).
+4. **You merge.**
 
 ## Why the order matters
 
@@ -43,6 +53,8 @@ this way raises the [ready-to-merge ratio](../concepts/continuous-improvement.md
 
 ## Related
 
+- [Improve your project's context](./improve-context.md) — the skill this flow
+  runs through, and everything else it can do.
 - [The output contract](../concepts/output-contract.md) — what STUCK means and why
   the harness refuses to fake success.
 - [Continuous improvement](../concepts/continuous-improvement.md) — why the

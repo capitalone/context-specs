@@ -224,7 +224,22 @@ context-specs run <env>     # one foreground tick: fetch, find nothing, exit idl
 ```
 
 A clean no-op `run` proves the whole chain — registry, dispatcher, config,
-worktree base — without doing any work. Then the daily flow:
+worktree base — without doing any work.
+
+**Then offer to seed long-term memory (recommended).** The Expert installed in
+Step 3 is an empty skeleton, and an empty Expert means every spec plan starts
+from zero — it's the biggest lever on plan quality. Ask the user
+(AskUserQuestion): *"Seed the initial long-term memory now? (recommended)"* with
+options **Seed now (recommended)** / **Later**.
+- **Seed now** → invoke `/improve-context` in this session with this steering:
+  *"The user just initialized this environment and the Expert is empty. Explore
+  the codebase, then interactively help them write the initial long-term
+  memory — architecture concepts, key how-tos, hard invariants, and any
+  direction the team already knows."*
+- **Later** → include in the handoff below, plainly: run `/improve-context`
+  soon — an empty Expert means every plan starts from zero.
+
+Then the daily flow:
 
 ```
 context-specs start <env>   # background supervisor: build loop + memory loop
@@ -235,10 +250,10 @@ context-specs start <env>   # background supervisor: build loop + memory loop
    drains at machine speed; idle ticks nap the interval).
 2. Either: the reviewer converges → the harness posts **"Ready for your
    review"** with the build-session trail → run **`/evaluate-pr <feature>`**,
-   understand it, merge. Or: a step hits its cap → **STUCK** post with the
-   session log + diagnosis-first checklist. **Your first job is the context
-   defect, not the code** — find which AGENTS.md / Expert / spec / PRD content
-   misled the agent, correct it on the branch, then fix the code, merge.
+   understand it, merge. Or: a step hits its cap → **STUCK** post on the PR.
+   Run **`/improve-context <feature>`** — it walks you through the
+   diagnosis-first flow (context defect before code fix) so you don't have to
+   hold the machinery in your head.
 3. After each merge, the memory loop raises a `learn/<sha>` PR — the project
    updating its own long-term memory. Review it with the same care as code:
    it decides what every future feature knows.
@@ -253,9 +268,9 @@ context-specs start <env>   # background supervisor: build loop + memory loop
 The dispatcher invokes `/spec-planning`, `/spec-validate`, `/implement-mainspec`,
 `/fix-local-checks`, and `/address-feedback`; the memory loop invokes `/learn`.
 All arrive as symlinks from the harness repo via `context-specs add` — verify
-they resolve (`context-specs doctor`). Two are **human-invoked**: `/intent`
-(installed by Step 2 as project-owned) and `/evaluate-pr`. env-init generates
-the project-specific artifacts; it does not author skills.
+they resolve (`context-specs doctor`). Three are **human-invoked**: `/intent`
+(installed by Step 2 as project-owned), `/evaluate-pr`, and `/improve-context`.
+env-init generates the project-specific artifacts; it does not author skills.
 
 ## Re-running
 

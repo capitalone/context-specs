@@ -64,12 +64,14 @@ that feature until you step in.
 
 What it hands you is deliberate. Not just "it failed" — a session log of every
 `claude -p` invocation across the chain (so you can open any trace and see what the
-agent saw), a tail of the failing output, and a **diagnosis-first checklist**. The
-checklist's first item is not "fix the code." It is *identify which piece of context
-misled the agent* — a stale Expert note, a thin spec, a PRD that left something out
-— and correct that first. Because if the context that caused the failure stays
-wrong, the same class of failure comes back the next time a feature touches that
-area. See [Unstick a feature](../how-to/unstick-a-feature.md).
+agent saw), a tail of the failing output, and a pointer to
+**[`/improve-context`](../how-to/improve-context.md)**, which walks the
+diagnosis-first flow with you. The first move is not "fix the code." It is
+*identify which piece of context misled the agent* — a stale Expert note, a thin
+spec, a PRD that left something out — and correct that first. Because if the
+context that caused the failure stays wrong, the same class of failure comes back
+the next time a feature touches that area. See
+[Unstick a feature](../how-to/unstick-a-feature.md).
 
 ## Both states are finished — and the ratio is your metric
 

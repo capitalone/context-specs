@@ -211,7 +211,7 @@ the rest are dispatcher-local:
   skill exit is recorded in the row but never aborts the tick (`return 0`).
 - **`signal_stuck <feature> <step> <cap> [output-file]`** — touches the stuck
   sentinel, composes a PR body (step, cap, session-log tail, optional failing
-  output tail, diagnosis-first checklist), and opens a draft PR or comments on
+  output tail, `/improve-context` pointer), and opens a draft PR or comments on
   the existing one. The single human-facing surface for failures.
 - **`reviewer_converged <branch>`** — true iff a PR comment contains
   `REVIEW_CLEAN_MARKER`. One `ghe` call, no LLM. Empty marker = no reviewer → false.

@@ -127,7 +127,8 @@ Exactly three points:
 1. **Confirming a PRD** (via the project-owned `/intent`, in their own checkout).
 2. **Merging a PR** (the feature PR after `/evaluate-pr`, and the `learn/<sha>`
    memory PR).
-3. **Unsticking a STUCK** (diagnosis-first: fix the context, then the code).
+3. **Unsticking a STUCK** (via `/improve-context` — diagnosis-first: fix the
+   context, then the code).
 
 Everything between is the harness. The loop never merges — that is the steering
 input the system is built around.

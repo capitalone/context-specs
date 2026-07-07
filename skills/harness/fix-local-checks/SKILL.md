@@ -57,8 +57,8 @@ whitespace`. Push. The dispatcher re-runs the gate next tick to confirm.
 Make whatever honest partial progress you can, commit it, and exit. **Do not cheat
 to force a green.** The dispatcher's counter will eventually reach `LOCAL_CHECKS_CAP`
 and hand the feature to a human via STUCK — which is the **correct** outcome for a
-failure you can't honestly resolve. The human gets the failing output and the
-diagnosis-first checklist; their job is to find the context defect first.
+failure you can't honestly resolve. The human gets the failing output and a
+pointer to `/improve-context`; their job is to find the context defect first.
 
 ## You may NEVER silence a check
 
