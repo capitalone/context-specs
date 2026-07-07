@@ -41,7 +41,7 @@ explicit opt-out, never a silent rubber-stamp.
 
 **Fix it here and push.** You never hand work back to the loop — you are the last
 mile. Whatever you fix rides into `main` on the merge, where
-[`/learn`](../concepts/long-term-memory.md) picks it up as ground truth.
+[`/learn`](../concepts/long-term-memory.md) picks it up and extends it.
 
 ## Why this closes the loop
 

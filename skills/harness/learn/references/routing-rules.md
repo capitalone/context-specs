@@ -87,3 +87,8 @@ Every `delete` carries a one-line justification in the PR body. Inbound
 wikilinks must be rewritten or removed in the same PR;
 `scripts/check-expert-links.sh` fails the build if any inbound link still
 points at a deleted target.
+
+None of these triggers apply to **developer-written direction** (decisions and
+aspirations not yet in code) — its delete trigger is a fulfilled or reversed
+decision, never a missing code anchor. See the direction carve-out in
+`reconcile.md`.

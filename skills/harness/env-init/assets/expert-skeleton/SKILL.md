@@ -1,6 +1,6 @@
 ---
 name: expert
-description: This project's long-term memory — how to run, validate, and extend it; its architecture, patterns, hard invariants, and worked examples. Consult when planning a feature, validating a spec, implementing a slice, or writing intent for this project. Routing table below points to one small reference file per topic.
+description: This project's long-term memory — how to run, validate, and extend it; its architecture, patterns, hard invariants, worked examples, and current decisions/direction. Consult when planning a feature, validating a spec, implementing a slice, or writing intent for this project. Routing table below points to one small reference file per topic.
 ---
 
 # The Expert — this project's long-term memory
@@ -10,10 +10,11 @@ description: This project's long-term memory — how to run, validate, and exten
 
   Two continuous helpers file things into it — /learn after every merge, and
   the implementer's Reflect step after every slice — but editing it directly
-  is expected, not exceptional. This memory informs every future feature's
-  plan: improving it is the highest-leverage work you can do on this project.
-  If a spec plan uses the wrong abstraction or misses a convention, the fix
-  belongs HERE, in the shard that should have taught it.
+  is expected, not exceptional. Update it rapidly and constantly — decisions
+  and direction included; don't wait for code to land. This memory informs
+  every future feature's plan: improving it is the highest-leverage work you
+  can do on this project. If a spec plan uses the wrong abstraction or misses
+  a convention, the fix belongs HERE, in the shard that should have taught it.
 -->
 
 ## How to use this memory
@@ -36,6 +37,10 @@ the task at hand. Each file is one topic; files cross-link with `[[wikilinks]]`
 ## Writing to this memory
 
 - **One topic per file**, named `<prefix>-<topic>.md`, opening with a `USE WHEN:` line.
-- **Ground truth only** — facts true of the code on `main`, cited (file paths, shas).
-- **Reconcile, don't accumulate** — a change that stales a shard edits or deletes it.
+- **Anything that helps the next agent belongs here** — facts about the code as it
+  is (cite file paths, shas) AND decisions, direction, and aspirations about where
+  it's going. Make clear in the prose which is which.
+- **Reconcile, don't accumulate** — when reality *or intent* changes, edit or delete
+  the shard. A merge that fulfills a stated direction turns it into cited fact; a
+  decision you've walked back gets deleted, not appended to.
 - Add the routing-table line in the same commit as the shard.

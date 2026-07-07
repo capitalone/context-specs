@@ -6,7 +6,7 @@ description: Update the project's long-term memory after a merge to main. Reads 
 # learn
 
 This is how the project **gets better on every merge.** When code lands on main,
-`/learn` reconciles the project's long-term memory with the new ground truth: it
+`/learn` reconciles the project's long-term memory with what just landed: it
 updates the **Expert** (procedural + semantic memory, pulled on demand) and the
 **AGENTS.md** map (eager memory, loaded as agents traverse the repo), discovers
 project invariants, and drafts candidate **lints** (the highest-value memory,
@@ -19,23 +19,30 @@ in the developer's clone. The memory loop runs independently of the
 feature/build loop, so a from-scratch Expert bootstrap blocks neither. Your output is
 a single reviewable PR — never an auto-merge. Humans steer at merge.
 
-## Ground truth is the whole point (read this first)
+## What memory is (read this first)
 
-> **Memory reflects what is committed to `main`, never what is planned.** PRDs and
-> specs describe intent; code is reality. You are the agent-readable summary of
-> reality — so you only ever write from a merged diff, never from a branch in
-> flight. This is *why* `/learn` runs post-merge and nowhere else.
+> **The memory is the developer's.** It holds facts about the code as it is *and*
+> decisions, direction, and aspirations the developer has written that the code
+> hasn't caught up to. **Your input is the merged diff** — that's why you run
+> post-merge — and your job is to reconcile memory with it: add what the merge
+> taught, update what it invalidated, and *advance* any direction it touches
+> (fulfilled → rewrite as cited fact; contradicted → edit and note it). Direction
+> is never stale merely because it isn't observable in code yet.
 
-There is **one memory write path** in this design: you, on merge, via a
-human-merged PR. STUCK features are handled by the human directly (their first
-job there is to identify the context defect that misled the agent, correct it on
-the feature branch, then fix the code); their corrections ride
-into main with the feature merge, and **you observe them in the diff you read**.
+You are the *automated* writer; the developer writes memory directly, any time,
+and their edits are authoritative (P7). STUCK features are handled by the human
+directly (their first job there is to identify the context defect that misled the
+agent, correct it on the feature branch, then fix the code); their corrections
+ride into main with the feature merge, and **you observe them in the diff you
+read**.
 
 ## The philosophy
 
-- **P1 — Ground truth only.** Write from the merged diff. If something isn't on
-  main, it doesn't exist yet.
+- **P1 — Write from the merged diff.** Your own additions are evidence-based:
+  cite the diff. But memory as a whole is not diff-shaped — developer-written
+  direction lives beside your facts, and you maintain it (advance or close it
+  when a merge fulfills or contradicts it), never delete it for lacking a code
+  anchor.
 - **P2 — Two memory shapes, opposite costs.** The **Expert** is *pulled on demand*
   (cheap until consulted). **AGENTS.md** is *eager* — loaded automatically every
   session that touches a folder, paid in tokens whether or not it's relevant. So
@@ -62,13 +69,14 @@ into main with the feature merge, and **you observe them in the diff you read**.
   past). See `references/invariant-discovery.md`.
 - **P7 — Human-authored memory edits are authoritative.** When the merged diff
   *already* touches AGENTS.md, an Expert reference file, or a spec, treat those
-  changes as **ground truth, not as a proposal to second-guess.** They came from a
-  human resolving a STUCK or making a deliberate correction. Your job there is to
-  *extend* (what else, given this correction, now needs to change?) — not to vote
-  on whether to apply it.
+  changes as **authoritative — extend them, never second-guess them.** They came
+  from a human resolving a STUCK or making a deliberate correction. Your job there
+  is to *extend* (what else, given this correction, now needs to change?) — not to
+  vote on whether to apply it.
 - **P8 — Reviewable, revertible, human-merged.** Everything lands on a `learn/<sha>`
   PR. Never auto-merge.
-- **P9 — Reconcile, don't accumulate.** Memory is a *current model of main*, not
+- **P9 — Reconcile, don't accumulate.** Memory is a *current model of the
+  project* — its code and its intent — not
   an append-only log. Every run must look for deleted concepts (the code is gone →
   the reference file goes), inter-file contradictions (two files disagree → merge
   or scope-qualify), and claims invalidated by the merged diff. **Adds, edits, and
@@ -121,7 +129,7 @@ the *why*.
 
 **Notice whether the diff itself touches memory files** (AGENTS.md, Expert
 reference files, spec sections). If so, you're looking at a human's context
-correction — see P7; those changes are ground truth.
+correction — see P7; those changes are authoritative.
 
 ### Step 2 — Reconcile
 Run the three-pass reconcile (`references/reconcile.md`) in the main agent — no
@@ -209,7 +217,9 @@ appended** — the git history of `learn/<sha>` PRs is the changelog.
   routed a fact as it did. No action needed in this skill — the loop posts it.
 
 ## Hard nevers
-- **Never write memory for uncommitted or planned work** (P1). Diff against main only.
+- **Never invent facts beyond the merged diff** (P1) — and **never delete or
+  "correct" developer-written direction just because the code doesn't show it
+  yet**; reconcile it against the merge instead.
 - **Never auto-merge.** Open the PR; the human steers (P8).
 - **Never let AGENTS.md become an encyclopedia** — pointers into the Expert, under
   the caps (P4).

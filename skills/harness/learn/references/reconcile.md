@@ -7,9 +7,10 @@ justification cited from the diff or the contradicting reference file.
 
 ## The premise
 
-Memory must reflect what is true *on main right now* — not what was true at the
-last merge plus everything observed since. So every `/learn` run does three
-things, in order:
+Memory's *facts* must reflect what is true on main right now — not what was true
+at the last merge plus everything observed since. Memory's *direction*
+(developer-written decisions and aspirations) must reflect current intent.
+Reconcile both. So every `/learn` run does three things, in order:
 
 1. **Add** facts that appear in the merged diff and aren't in the Expert yet.
 2. **Edit** existing reference files whose claims are still relevant but
@@ -42,6 +43,15 @@ For each `concept-*.md` and `how-to-*.md` in the Expert:
 Do the same for `invariant-*.md` and `pattern-*.md`: if the rule's anchor code
 is gone (the layer, the module, the API surface), the rule is dead.
 
+**Direction carve-out.** A shard (or section) that states a developer-written
+decision, aspiration, or direction has no anchor code *by design* — absence of
+references is not a delete signal. Instead ask: did this merge **fulfill** it
+(rewrite it as cited fact, or delete it if the fact now lives elsewhere) or
+**contradict** it (edit it; if a human-authored edit in this diff supersedes it,
+follow the human per P7)? Otherwise leave it alone. The carve-out covers
+developer-written decision/aspiration content only — a *fact* shard whose anchors
+are gone still gets Pass 1's normal treatment.
+
 ### Pass 2 — Inter-file contradiction pass
 
 Build a list of **topic-related file pairs**:
@@ -70,9 +80,11 @@ facts?** Common patterns:
 
 **Default heuristic: rewrite both / scope-qualify.** Drop one only when one is
 clearly stale (its anchor code is gone, it predates a refactor that already
-landed, or a human-authored P7 edit in this diff supersedes it). Never silently
-delete on contradiction — every `delete` shows up in the PR body with its
-one-line justification.
+landed, or a human-authored P7 edit in this diff supersedes it). A direction
+shard and a fact shard that "disagree" usually both stand — one describes today,
+one describes where the project is going; scope-qualify rather than delete.
+Never silently delete on contradiction — every `delete` shows up in the PR body
+with its one-line justification.
 
 ### Pass 3 — Diff-invalidates-file pass
 

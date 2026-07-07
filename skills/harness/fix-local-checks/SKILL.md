@@ -102,4 +102,4 @@ decision. The ability to skip is the human's, never yours.
   `local-checks.sh`, `scripts/lints/*`.
 - **Never refactor or add features.** Touch only what the failing checks require.
 - **Never commit a fake green.** A check that passes because you suppressed it is a
-  regression dressed as a fix — and `/learn` would learn it as ground truth.
+  regression dressed as a fix — and `/learn` would learn it as fact.

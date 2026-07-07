@@ -55,7 +55,7 @@ The merge triggers the dispatcher's cleanup (tears down the per-feature worktree
 `human-review-<f>` sentinels) and the post-merge `/learn` pass (which reconciles memory from the merged diff).
 This is where insights from your evaluation get recorded — whether they landed as **code**,
 or as **memory edits the human wrote during the walk** (Expert / AGENTS.md, committed on the
-branch). `/learn`'s P7 treats those human-authored edits as ground truth to *extend*, not
+branch). `/learn`'s P7 treats those human-authored edits as authoritative — to *extend*, not
 second-guess — so a pattern the human seeded here survives the post-merge pass intact.
 
 ### Fix, then merge

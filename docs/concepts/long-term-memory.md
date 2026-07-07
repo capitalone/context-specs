@@ -50,19 +50,25 @@ any existing skill.
 The Expert is one of the two [developer-owned levers](./two-tier-architecture.md).
 It is seeded as a skeleton by `/env-init` and grows from there.
 
-## One write path: ground truth only
+## What memory holds, and how it's written
 
-The most important rule keeps memory honest:
+The memory is **the developer's**. Anything that helps the next agent plan or build
+this project better belongs in it:
 
-> **Memory reflects what is committed to `main`, never what is planned.**
+> Current facts (cited: file paths, shas), patterns, invariants — **and decisions,
+> direction, and aspirations not yet realized in code.** Reconcile, don't
+> accumulate: when reality *or intent* changes, edit or delete the shard.
 
-PRDs and specs describe intent; code is reality. So the memory loop only ever
-writes from a *merged diff* — never from a branch in flight, never from a feature
-that might still be abandoned. That gives the whole system a single, auditable
-**write path**: a human merges a feature;
-[`/learn`](../../skills/harness/learn/SKILL.md) observes the result; the change to
-memory lands on its own `learn/<sha>` pull request that a human reviews and merges.
-There is exactly one door, and it opens only on ground truth.
+You write it directly, any time — the more rapidly and constantly, the better every
+future plan gets. It is the biggest context lever you own, and
+[`/improve-context`](../how-to/improve-context.md) exists to help you work it.
+
+The *automated* writer is narrower on purpose: the memory loop
+([`/learn`](../../skills/harness/learn/SKILL.md)) writes only from a *merged diff* —
+never from a branch in flight — and its changes land on their own `learn/<sha>`
+pull request that a human reviews and merges. It adds what a merge taught, updates
+what it invalidated, advances direction a merge fulfilled, and treats your own
+memory edits as authoritative — extending them, never second-guessing them.
 
 ```mermaid
 flowchart LR
@@ -112,14 +118,18 @@ is wired in.
 
 ## Reconcile, don't accumulate
 
-Memory is a *current model of `main`*, not an append-only log. On every merge
-`/learn` runs a three-pass reconcile against the merged diff: it **deletes**
-references whose anchor code is gone, resolves **contradictions** between files that
-now disagree, and **edits** claims the diff has invalidated. Adds, edits, and
-deletes all ride the same `learn/<sha>` PR, each with a one-line justification
-citing the diff hunk that motivated it — if it cannot be justified from the diff, it
-is dropped. Inside the Expert, files are kept small and cross-linked with
-`[[wikilinks]]`, so consulting memory never means loading all of it.
+Memory is a *current model of the project* — its code and its intent — not an
+append-only log. On every merge `/learn` runs a three-pass reconcile against the
+merged diff: it **deletes** references whose anchor code is gone, resolves
+**contradictions** between files that now disagree, and **edits** claims the diff
+has invalidated. Adds, edits, and deletes all ride the same `learn/<sha>` PR, each
+with a one-line justification citing the diff hunk that motivated it — if it cannot
+be justified from the diff, it is dropped. Developer-written **direction** is
+reconciled against *intent*, not code: a merge that fulfills it converts it to
+cited fact; a decision that's been walked back gets edited or deleted — it is never
+deleted merely for not being observable on `main` yet. Inside the Expert, files are
+kept small and cross-linked with `[[wikilinks]]`, so consulting memory never means
+loading all of it.
 
 ## Related
 
@@ -127,5 +137,5 @@ is dropped. Inside the Expert, files are kept small and cross-linked with
   engine of the flywheel; this is why the harness compounds.
 - [Spec-Driven Development](./spec-driven-development.md) — the short-term
   counterpart, and where Reflect feeds long-term memory.
-- [The human loop](./the-human-loop.md) — you are the third write path: you seed
-  memory deliberately, always through a merge.
+- [The human loop](./the-human-loop.md) — you write memory directly, deliberately
+  and often; `/learn` and Reflect are helpers filing in behind you.

@@ -183,15 +183,17 @@ posts the build-session trail once and halts the feature. The human runs
 `/evaluate-pr` to walk the change, run it, and merge (or fix-and-push, or close).
 The loop does not re-engage — the human is the last mile.
 
-**STUCK (the failure one).** Memory still has its post-merge write path —
-`/learn` in the memory loop, ground truth only. There is no separate write path
+**STUCK (the failure one).** Memory's automated write path stays post-merge —
+`/learn` in the memory loop, always via a reviewable PR (the developer edits
+memory directly whenever they like). There is no separate automated write path
 for failed features. Instead, **STUCK** (a step in §3 hitting its cap) is a
 first-class escalation: the dispatcher posts to the PR (opening it as a draft if
-needed) with the session log, the failing output tail, and a diagnosis-first
-checklist, then halts the feature. The human's first job at STUCK is to identify
-the **context defect** (which `AGENTS.md` / Expert / spec / PRD content misled
-the agent), correct it on the branch, *then* fix the code, *then* merge. Those
-context corrections ride into main with the merge, where `/learn` picks them up.
+needed) with the session log, the failing output tail, and a pointer to
+`/improve-context`, then halts the feature. That skill walks the human through
+the diagnosis-first flow: identify the **context defect** (which `AGENTS.md` /
+Expert / spec / PRD content misled the agent), correct it on the branch, *then*
+fix the code, *then* merge. Those context corrections ride into main with the
+merge, where `/learn` picks them up.
 
 ## The session log + STUCK signal
 
