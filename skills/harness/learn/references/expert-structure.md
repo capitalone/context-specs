@@ -22,10 +22,11 @@ one file can discover related context by following links. `SKILL.md` is the
     ├── concept-core-files.md           # semantic
     ├── pattern-<topic>.md              # soft prefer/avoid (judgment)
     ├── invariant-<rule>.md             # one hard rule per file
-    └── example-<scenario>.md           # past trace, cited from a real sha
+    ├── example-<scenario>.md           # past trace, cited from a real sha
+    └── decision-<slug>.md              # forward-looking direction, not yet in code
 ```
 
-## The five prefixes
+## The six prefixes
 
 Each fact `/learn` decides to remember lands in exactly one prefixed file. The
 filename slug is the topic; the prefix is the *kind* of memory.
@@ -53,6 +54,17 @@ filename slug is the topic; the prefix is the *kind* of memory.
   merge, input → reasoning → output. Cited from a real sha. Never synthetic.
   Acts as a few-shot demonstration. Example:
   `example-added-search-endpoint-2024-q3.md`.
+
+- **`decision-<slug>.md` — forward-looking (direction).** A choice about where the
+  project is *heading* that the code may not reflect yet: an adopted architecture
+  direction, a migration in progress, a convention for new code. Unlike
+  `pattern-*` (which the code already follows), a decision is prescriptive and
+  aspirational. It carries an **Until fulfilled:** note — guidance for work in the
+  area before the decision is realized (what advances it vs. what stays consistent
+  with current code). No status field: the file's *existence* means adopted. When
+  the code catches up, `/learn` promotes it to a `concept-`/`pattern-` fact and
+  deletes the decision; if abandoned or reversed, `/improve-context` retires it.
+  Example: `decision-event-source-the-ledger.md`.
 
 The split exists so an agent reading the SKILL.md index can ask one question of
 each file ("does this topic apply now?") and open only what's relevant — instead
@@ -123,6 +135,9 @@ specific.
   recurring evidence across merges, not from one snapshot.
 - `example-*.md` — **zero on bootstrap.** Episodic memory needs real past
   experiences, not synthetic ones.
+- `decision-*.md` — **zero on bootstrap.** Decisions come from a human stating
+  direction, never from a code scan. `/improve-context` seeds them when the
+  developer has direction to record.
 
 **Soft cap: ~15 files total** on bootstrap. If the scan suggests more, fold
 related items into one `concept-*.md` and let `/learn` split it later when a

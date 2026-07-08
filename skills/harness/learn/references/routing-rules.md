@@ -10,10 +10,10 @@ to the last two rows.
 |---|---|---|
 | **A lint** (`scripts/lints/*` → `local-checks.sh`) | The rule is *mechanically checkable* — pass/fail needs no judgment (layer-dependency direction, "parse at boundaries", naming, no raw SQL interpolation, structured-logging-only, file-size caps) | Best: enforced on every PR forever, and the failure message doubles as a fix prompt. See `invariant-discovery.md`. |
 | **Eager prose** (`AGENTS.md`) | It clears **all five predicates** below | Paid in tokens on *every* session that touches the folder — strict bar. |
-| **Lazy prose** (an Expert reference file) | Useful when an agent is *deliberately reasoning* about this area, but not needed pre-emptively | Paid only when consulted — looser bar. The default home for real knowledge. Splits into five sub-destinations (see below). |
+| **Lazy prose** (an Expert reference file) | Useful when an agent is *deliberately reasoning* about this area, but not needed pre-emptively | Paid only when consulted — looser bar. The default home for real knowledge. Splits into six sub-destinations (see below). |
 | **Nowhere** | Inferable from the code, taste-only, or transient | — |
 
-## Sub-routing for lazy prose: the five prefixes
+## Sub-routing for lazy prose: the six prefixes
 
 A fact destined for the Expert lands in exactly one prefixed file. See
 `expert-structure.md` for the directory layout.
@@ -25,11 +25,14 @@ A fact destined for the Expert lands in exactly one prefixed file. See
 | `pattern-<topic>.md` | Soft DO/DON'T requiring judgment. Has counterexamples. Cannot be linted. |
 | `invariant-<rule>.md` | A single hard rule, mechanically checkable in principle. One rule per file; filename = the rule. The highest-value ones get drafted as lints. |
 | `example-<scenario>.md` | Episodic / few-shot — a *past* concrete trace (PR, merge, debugging session) cited from a real sha. Never synthetic. |
+| `decision-<slug>.md` | A forward-looking choice not yet realized in code (direction, migration, convention for new work). Carries an *Until fulfilled* note. Human-authored; `/learn` never seeds one. |
 
 **Tiebreakers:**
 
 - A step list → `how-to`. A noun or definition → `concept`. A rule → `invariant`
   if linable, else `pattern`. A past trace with a sha → `example`.
+- Code **already follows it** → `pattern`. A **target the code hasn't reached
+  yet** → `decision`.
 - If a fact is *both* procedural and load-bearing as a rule, write both: the
   `how-to-*` mentions the rule and wikilinks `[[invariant-*]]`.
 - One rule per `invariant-*.md` file — never bundle multiple invariants.
@@ -88,7 +91,8 @@ wikilinks must be rewritten or removed in the same PR;
 `scripts/check-expert-links.sh` fails the build if any inbound link still
 points at a deleted target.
 
-None of these triggers apply to **developer-written direction** (decisions and
-aspirations not yet in code) — its delete trigger is a fulfilled or reversed
-decision, never a missing code anchor. See the direction carve-out in
+None of these triggers apply to a **`decision-*` shard** (forward-looking
+direction not yet in code) — its delete trigger is a merge that **fulfills** it
+(promote to a `concept-`/`pattern-` fact, then delete) or a decision that's been
+**reversed**, never a missing code anchor. See the decision handling in
 `reconcile.md`.

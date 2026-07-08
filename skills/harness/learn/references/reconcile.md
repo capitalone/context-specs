@@ -43,14 +43,24 @@ For each `concept-*.md` and `how-to-*.md` in the Expert:
 Do the same for `invariant-*.md` and `pattern-*.md`: if the rule's anchor code
 is gone (the layer, the module, the API surface), the rule is dead.
 
-**Direction carve-out.** A shard (or section) that states a developer-written
-decision, aspiration, or direction has no anchor code *by design* — absence of
-references is not a delete signal. Instead ask: did this merge **fulfill** it
-(rewrite it as cited fact, or delete it if the fact now lives elsewhere) or
-**contradict** it (edit it; if a human-authored edit in this diff supersedes it,
-follow the human per P7)? Otherwise leave it alone. The carve-out covers
-developer-written decision/aspiration content only — a *fact* shard whose anchors
-are gone still gets Pass 1's normal treatment.
+**Skip `decision-*` shards in this pass — mechanically, by prefix.** A
+`decision-*` file is forward-looking direction; it has no anchor code *by design*,
+so "the anchor is gone" is never a delete signal for it. Do **not** run the code
+existence check on `decision-*` files. Instead, ask only two questions of each,
+both keyed on the merged diff:
+
+- Did this merge **fulfill** the decision (the code now matches the direction it
+  stated)? → **promote and retire**: fold the now-true content into the matching
+  `concept-*`/`pattern-*` shard (`add`/`edit`), then `delete` the `decision-*`
+  file. Justification cites the realizing diff hunk.
+- Did this merge **reverse** it (a change that abandons the direction, or a
+  human-authored edit in this diff that supersedes it per P7)? → `edit` or
+  `delete`, following the human if they acted.
+
+If the merge does neither, leave the decision **untouched** — you never seed,
+rewrite, or delete a live decision on your own initiative. (Fact shards —
+`concept-`/`how-to-`/`invariant-`/`pattern-` — still get Pass 1's normal
+anchor-existence treatment above.)
 
 ### Pass 2 — Inter-file contradiction pass
 
@@ -80,11 +90,13 @@ facts?** Common patterns:
 
 **Default heuristic: rewrite both / scope-qualify.** Drop one only when one is
 clearly stale (its anchor code is gone, it predates a refactor that already
-landed, or a human-authored P7 edit in this diff supersedes it). A direction
-shard and a fact shard that "disagree" usually both stand — one describes today,
-one describes where the project is going; scope-qualify rather than delete.
-Never silently delete on contradiction — every `delete` shows up in the PR body
-with its one-line justification.
+landed, or a human-authored P7 edit in this diff supersedes it). A `decision-*`
+shard and a fact shard (`pattern-`/`concept-`) that "disagree" are **not** a
+contradiction — they're a now/next pair: the fact describes today, the decision
+describes where the project is going. Leave both; never delete a decision here
+(its only retirement path is fulfil/reverse in Pass 1). Never silently delete on
+contradiction — every `delete` shows up in the PR body with its one-line
+justification.
 
 ### Pass 3 — Diff-invalidates-file pass
 
@@ -103,7 +115,9 @@ that path. For each reference:
 After reconcile, each entry on `adds[]` / `edits[]` / `deletes[]` is routed
 through `routing-rules.md` to pick its prefix (`how-to-*` / `concept-*` /
 `pattern-*` / `invariant-*` / `example-*`) or — for an `add` — to be redirected
-to AGENTS.md, a lint, or nowhere instead.
+to AGENTS.md, a lint, or nowhere instead. (`decision-*` is not in this list on
+purpose: you never *add* a decision — it's human-authored direction. Your only
+`decision-*` writes are the fulfil-promotion and reverse-delete from Pass 1.)
 
 Write logic:
 

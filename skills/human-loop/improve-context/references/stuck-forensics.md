@@ -125,6 +125,10 @@ project's memory uses:
 - **Lazy prose (an Expert reference file)** — the default home. Pick the file by prefix
   (`how-to-*`, `concept-*`, `pattern-*`, `invariant-*`, `example-*`); if none fits, write
   a clear, correctly-scoped new shard.
+- **A decision (`decision-*`)** — when the defect is that the agent had no *direction*:
+  it guessed at where the code should head, or built against a convention the project
+  hasn't stated yet. Write the direction as a `decision-<slug>.md` (with an *Until
+  fulfilled* note) so the next planner treats it as a target, not a fact.
 - **A skill defect** — if a *skill's own text* steered the agent wrong, the fix is that
   skill's `SKILL.md` (or its `references/`). Edit it like any other context, on the branch.
 - **Nowhere** — inferable from the code, taste-only, or transient. Prefer nothing over

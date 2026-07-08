@@ -110,6 +110,17 @@ or getting wrong, draft the shards with them (prefixed files, `USE WHEN:` lines,
 table rows), and offer a long-term-memory eval to make the improvement measurable
 (before/after — `references/evals.md`).
 
+**Decisions are a lever of their own.** When the human states *direction* the code
+hasn't caught up to ("we're moving to X", "new code should do Y"), write it as a
+`decision-<slug>.md` shard — the direction, a `[[concept-…]]` pointer to today's
+state, and an **Until fulfilled** note (what advances it vs. what stays consistent
+with current code; no status field). You also own the messy half of a decision's
+lifecycle that `/learn` can't: **retiring abandoned or reversed decisions.** `/learn`
+cleanly retires a decision a merge *fulfills*; only you, with the human present, can
+judge that a decision is *dead* — walked away from, or superseded. When you see one,
+retire it: delete it outright, or if part shipped, promote the realized part to a
+`concept-`/`pattern-` fact and drop the rest.
+
 When invoked by `/env-init` with a fresh, empty Expert: explore the codebase yourself
 first (structure, build/test/run, core abstractions, hard constraints), then interview
 the human for what the code can't tell you — direction, tribal knowledge, past scars —
@@ -126,7 +137,8 @@ Discover the harness's state and propose the highest-leverage focus:
 - A STUCK found → propose starting there (route a).
 - Nothing stuck → present the lever menu with a one-line health read of each: AGENTS.md
   (present? within line caps? pointing into the Expert?), the Expert (empty skeleton or
-  populated? stale?), `/intent` (are recent PRDs/runners sharp?), lints (do failure
+  populated? stale? any `decision-*` shards that look **abandoned** — old, and no merge
+  ever fulfilled them?), `/intent` (are recent PRDs/runners sharp?), lints (do failure
   messages read as fix-prompts?), evals (does `evals/` exist? passing?). Let the human
   pick; when they have no preference, recommend the emptiest high-leverage lever — an
   empty Expert first, always.

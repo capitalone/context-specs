@@ -50,8 +50,10 @@ read**.
 - **P3 — The four destinations.** Every fact worth remembering routes to exactly
   one place: a **lint** (if mechanically checkable), **eager prose** (AGENTS.md, if
   it clears the high bar), **lazy prose** (an Expert reference file — one of
-  `how-to-*` / `concept-*` / `pattern-*` / `invariant-*` / `example-*`), or
-  **nowhere**. Most things go nowhere or to the Expert. See
+  `how-to-*` / `concept-*` / `pattern-*` / `invariant-*` / `example-*` /
+  `decision-*`), or **nowhere**. Most things go nowhere or to the Expert. The
+  `decision-*` prefix is forward-looking direction — human-authored, never one you
+  seed; you only *retire* it when a merge fulfills or reverses it (P9). See
   `references/routing-rules.md` and `references/expert-structure.md`.
 - **P4 — Map, not encyclopedia.** AGENTS.md is the table of contents that *points
   into* the Expert; it never duplicates it. A monolithic AGENTS.md rots, crowds
@@ -93,7 +95,7 @@ Read the seam references before acting; they are the hackable contract a project
 tunes to its taste:
 
 - `references/routing-rules.md` — the four destinations + the five-predicate test
-  for eager placement + the five sub-destinations for the Expert + the line-count
+  for eager placement + the six sub-destinations for the Expert + the line-count
   caps. *(Primary hackable seam.)*
 - `references/expert-structure.md` — the flat prefix-named layout, the five
   prefixes, the SKILL.md index, the bootstrap seed list.
@@ -170,6 +172,15 @@ loop advances `refs/harness/last-learned` regardless.
   (`how-to-<verb-noun>.md`, `concept-<topic>.md`, etc.). Cross-link to related
   files with `[[wikilinks]]` (no path, no extension). Update
   `.claude/skills/expert/SKILL.md`'s one-line-per-file index to match the new set.
+- **Fulfilled decisions** — when the merged diff **realizes** a `decision-*`
+  shard (the code now matches the direction it stated), *promote and retire*:
+  fold its now-true content into the matching `concept-*`/`pattern-*` fact shard
+  (add or edit), then **delete the `decision-*` file**. If the diff instead
+  **reverses** a decision, delete it. Both carry a one-line PR-body justification
+  citing the diff hunk (e.g. "PR realized event-sourcing → promoted to
+  `concept-ledger-architecture`, deleted `decision-event-source-the-ledger`").
+  A decision the diff neither fulfills nor reverses is **left untouched** — you
+  never seed, edit, or delete a live decision on your own initiative.
 - **Invariants** — each discovered hard rule lands as its own
   `invariant-<rule>.md` (one rule per file). For mechanically checkable ones,
   draft a candidate lint (code + remediation-message-as-prompt) under

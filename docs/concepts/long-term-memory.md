@@ -47,6 +47,13 @@ a React Expert and a DynamoDB Expert both contribute to a full-stack feature, an
 organizations can layer in private Experts for internal libraries without touching
 any existing skill.
 
+Each reference file is prefixed by the *kind* of memory it holds: `how-to-`
+(procedural), `concept-`/`pattern-`/`invariant-` (semantic), `example-`
+(episodic), and `decision-` — **forward-looking direction the code hasn't caught
+up to yet** (an adopted architecture, a migration in progress, a convention for
+new work). A `decision-` shard is where "we're heading toward X" lives; it
+graduates into a `concept-`/`pattern-` fact once the code realizes it.
+
 The Expert is one of the two [developer-owned levers](./two-tier-architecture.md).
 It is seeded as a skeleton by `/env-init` and grows from there.
 

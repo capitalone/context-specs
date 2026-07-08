@@ -37,9 +37,10 @@ failure.
 ## The Expert — lazy long-term memory (the biggest lever)
 
 The project's long-term memory, `.claude/skills/expert/` — a routing-table `SKILL.md`
-plus one small reference file per topic. Five prefixes map to memory types:
+plus one small reference file per topic. Six prefixes map to memory types:
 `how-to-*` (procedural), `concept-*` / `pattern-*` / `invariant-*` (semantic — nouns,
-soft rules, hard rules), `example-*` (episodic, cited from a real sha).
+soft rules, hard rules), `example-*` (episodic, cited from a real sha), and
+`decision-*` (forward-looking direction the code hasn't caught up to yet).
 
 **Long-term memory informs short-term memory:** `/spec-planning` consults the Expert at
 the start of every plan, and `/intent` loads it to shape PRDs and runners. This is the
@@ -55,8 +56,11 @@ rapidly and constantly; `/learn` files in behind them after every merge.
 **Improvement moves:** seed an empty Expert (explore the codebase, then interview the
 human for what code can't say — direction, tribal knowledge, past scars); capture what
 agents keep re-deriving in traces as `how-to-*` shards; write the human's standing
-decisions as direction; measure it with `evals/long-term-memory/` (see `evals.md` —
-pairwise ablation makes "did memory help?" a runnable question).
+direction as `decision-*` shards (with an *Until fulfilled* note); **retire abandoned
+decisions** — ones the project walked away from that no merge ever fulfilled, which
+only a human can judge dead (`/learn` retires the fulfilled ones automatically); measure
+it all with `evals/long-term-memory/` (see `evals.md` — pairwise ablation makes "did
+memory help?" a runnable question).
 
 ## /intent — the input lever
 

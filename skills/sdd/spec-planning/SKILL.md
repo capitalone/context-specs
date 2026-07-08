@@ -294,6 +294,11 @@ Read the skill body + relevant reference files. Use what you learn to:
 - Avoid repeating patterns the project has already encoded
 - Ground BEFORE/AFTER examples in real file paths and current patterns
 - Avoid contradicting known invariants
+- Treat `decision-*` shards as forward-looking **targets**, not current facts —
+  follow the decision's "Until fulfilled" note for whether this feature should
+  advance the direction or stay consistent with today's code, and verify the
+  current state in the code before assuming anything the decision describes
+  already exists
 
 ### `/expert-*` — Outside experts
 
