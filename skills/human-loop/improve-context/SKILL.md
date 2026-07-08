@@ -77,8 +77,6 @@ You are a guide, not a checklist. Read the seam references as they become releva
 - `references/evals.md` — the two eval families (`evals/long-term-memory/`,
   `evals/lints/`), the pairwise-ablation recipe, curated gold, the rubric, and the
   right-reason check. *(Hackable seam: the judge rubrics.)*
-- `references/observability-tooling.md` — the graduation path beyond raw JSONL reading,
-  and when it's worth it.
 
 ## Routing by invocation
 

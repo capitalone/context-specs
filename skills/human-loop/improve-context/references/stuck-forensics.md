@@ -204,7 +204,7 @@ If `resolve-sessions.sh` reports `MISSING` for a trace, the harness ran on anoth
   the spec, and the diff. You can often still locate a context defect from the step that
   capped plus the failing output the STUCK comment includes.
 - Ask the human to fetch the uploaded trace artifacts (a server/CI harness should upload
-  the JSONL as workflow artifacts — see `observability-tooling.md`), or to re-run the
-  resolver on the machine that built the PR.
+  the JSONL as workflow artifacts), or to re-run the resolver on the machine that built
+  the PR.
 - If neither is available, say so plainly and scope the evaluation to the durable evidence
   rather than guessing at trace content you can't see.
