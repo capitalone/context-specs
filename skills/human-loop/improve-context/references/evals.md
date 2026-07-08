@@ -19,8 +19,10 @@ itself over time.
 ## Where evals live — in the project, in two families
 
 Evals live in the **dev's project**, under `evals/` at the repo root — a runtime artifact
-of the project, like `prds/` and `specs/`. Human-in-the-loop, run in the user's own
-checkout: no worktrees, no harness machinery.
+of the project, like `prds/` and `specs/`. Human-in-the-loop, run from the user's own
+checkout. (A long-term-memory case does spin one *disposable* worktree to re-plan against a
+historical commit — an internal mechanic of `plan-in-isolation.sh`, torn down after; never
+one of the harness's managed per-feature worktrees.)
 
 ```
 <project-repo>/evals/
@@ -28,10 +30,9 @@ checkout: no worktrees, no harness machinery.
 ├── run-all.sh                       # aggregator: runs every case's run-eval.sh
 ├── long-term-memory/
 │   └── <case>/
-│       ├── fixture/                 # prd.md, run-prd-test.sh, base-sha (regression cases)
-│       ├── gold.md                  # human-approved reference: what a good plan does
-│       ├── judge.md                 # the rubric (hackable seam)
-│       └── run-eval.sh              # exits 0 iff the expected behavior holds
+│       ├── fixture/                 # feature slug + (A) pre-plan sha + (B) old-plan sha
+│       ├── judge.md                 # the co-authored rubric (hackable seam)
+│       └── run-eval.sh              # new-vs-old attribution report; exit 0 iff Expert didn't hurt
 └── lints/
     └── <lint-name>/
         ├── fixture/                 # a mocked violation of the lint
@@ -60,10 +61,10 @@ Evals test the **harness** ("given this context, does it behave?");
 `prds/<f>/run-prd-test.sh` tests the **product** ("does the feature work?"). Keep them
 separate.
 
-Contract: one dir per case — `<family>/<case>/{fixture/, judge.md, run-eval.sh}`
-(+ `gold.md` for long-term-memory regression cases). `run-eval.sh` exits 0 iff the
-expected behavior holds. A new eval must go RED against the context that misled the
-agent and GREEN once it's fixed.
+Contract: one dir per case — `<family>/<case>/{fixture/, judge.md, run-eval.sh}`.
+`run-eval.sh` exits 0 iff the expected behavior holds. A new eval's verdict must MOVE with
+the context it tests — a long-term-memory case: the Expert edit changes the plan for the
+better; a lint case: red before the message fix, green after.
 ```
 
 `evals/run-all.sh`:
@@ -95,7 +96,7 @@ model for "runnable definition of correct":
 
 ---
 
-# Family 1 — `evals/long-term-memory/`: does the Expert improve plans?
+# Family 1 — `evals/long-term-memory/`: did the Expert change the plan, for the better?
 
 **What's judged: the plan, never a re-implementation.** Long-term memory (the Expert)
 informs short-term memory (spec planning → mainspec + slices). The plan is the Expert's
@@ -104,105 +105,128 @@ add cost, nondeterminism, and two confounders (the implementer, the environment)
 the thing being changed and the thing being measured. Production already grades the outer
 loop (attempt counters, STUCK rate).
 
-## Two case modes, one lifecycle
+**The comparison is temporal: today's plan vs. the plan that actually shipped.** For a
+merged feature, git already holds the spec plan generated back *then*. We re-run
+spec-planning *now* — against that feature's pre-plan checkout, with **today's Expert** —
+and compare the new plan against the historical one. The developer's real question, *did
+the Expert edits I just made change the plan, and for the better?*, is answered by that
+before/after — not by a synthetic with-Expert-vs-without ablation. The old plan is the real
+baseline the harness produced; nothing to fabricate.
 
-- **Regression case (default)** — a harvested *historical* feature: real `prd.md` +
-  `run-prd-test.sh`, the merge-parent sha, and a curated `gold.md`. Pins what memory must
-  keep doing; sits near-passing.
-- **Capability case** — a realistic *not-yet-built* PRD, run against current code. No
-  history, no checkout, no contamination; starts failing (empty/thin Expert) and gives a
-  hill to climb. When its feature later ships, upgrade it in place (add the merge-parent
-  sha + curated gold) — it **graduates** into the regression suite.
+## The three shas a case needs (all already in git history)
 
-Harvest regression inputs with `scripts/harvest-eval-inputs.sh` — it lists every merged
-feature that has both PRD and runner, with its landing sha. No manual archaeology.
+A long-term-memory case is built from **one merged feature**, and everything it needs
+already exists — no gold to curate, no synthetic baseline to generate:
 
-## The contamination rule (regression cases)
+- **(A) pre-plan sha** — the commit where `prds/<f>/{prd.md,run-prd-test.sh}` exist but
+  `specs/<f>/` does not. This is the code we re-plan against: the implementation isn't
+  present to be "discovered", and the PRD is present as the planning input.
+- **(B) old-plan sha** — the commit that first added `specs/<f>/mainspec.md` (+ slices).
+  This *is* the baseline plan — the one the harness produced back then. No regeneration.
+- **(C) code diff** — `A..tip` excluding `prds/` and `specs/`: what actually shipped. Not
+  judged directly; it's the ground truth you build the rubric from (see the rubric below).
 
-A harvested feature is already implemented on today's `main` — planning it against
-current code would trivially "discover" the existing implementation and pass with an
-empty Expert. So `run-eval.sh` plans against the code *as of the merge-parent*:
+`scripts/harvest-eval-inputs.sh` prints all three per merged feature. **Confirm they exist**
+for your chosen feature before building the case; if a feature's `/intent` and
+`/spec-planning` landed in one squashed commit (no clean (A)/(B)), pick another feature that
+has them. This family is **regression-only**: a not-yet-built feature has no (B) plan and no
+(C) diff, so it can't be a case yet — build it after the feature ships.
 
-```bash
-# Inside run-eval.sh — throwaway shared clone, gitignored, deleted after.
-# This is an internal mechanic of the script (NOT a harness worktree; the user's
-# tree is never touched): the committed eval definition is what lives in the repo.
-workdir="$here/workdir"; rm -rf "$workdir"
-git clone --shared --no-checkout "$(git rev-parse --show-toplevel)" "$workdir"
-git -C "$workdir" checkout --detach "$(cat "$here/fixture/base-sha")"
-# Overlay TODAY'S Expert (the thing under test) onto the historical code:
-rm -rf "$workdir/.claude/skills/expert"
-mkdir -p "$workdir/.claude/skills"
-cp -R "$(git rev-parse --show-toplevel)/.claude/skills/expert" "$workdir/.claude/skills/expert"
-```
+## Setup — inspect the harness, don't hardcode the invocation
 
-Add `workdir/` to `evals/.gitignore` when scaffolding the first regression case.
+Re-running spec-planning headless has exactly two traps, and both are why you **inspect the
+harness this environment runs under** instead of assuming `claude -p` flags:
 
-## Pairwise ablation — "did memory help?" as a runnable question
+1. The harness's tier-1 skills (incl. `spec-planning`) reach a project as **gitignored
+   symlinks** in `.claude/skills/`. A plain `git clone` / `git worktree add` does *not*
+   carry them, so `claude -p "/spec-planning …"` answers **"Unknown command."** The fresh
+   checkout must be re-linked — `context-specs link <wt>`, or the project's
+   `scripts/bootstrap-worktree.sh` (its deterministic header does the same link).
+2. The right permission posture is the **harness's**, read the way the dispatcher reads it:
+   default `--permission-mode auto`, overridable per-environment in `.harness/env`. Never
+   hardcode `--dangerously-skip-permissions` / `bypassPermissions` — read the effective
+   value (`CLAUDE_PERM_ARGS`) from the environment.
 
-Run `/spec-planning` headless **twice** for the fixture PRD — once with the current
-Expert, once with it hidden (or with the pre-edit Expert version, when measuring one
-edit) — then the judge compares the two plans **blind** (labeled A/B, order shuffled).
+The shared helper **`scripts/plan-in-isolation.sh`** does all of this correctly — **read it
+before writing a case**; it is the reference for how this project invokes planning. Given a
+feature + the (A) sha it: spins a *disposable* worktree at (A) (not a harness-managed one),
+overlays today's Expert, links the skills, invokes `/spec-planning <feature>` the harness's
+way, captures `specs/<f>/` off disk, and deletes the worktree — whatever planning committed
+dies with it, so **no real branch is touched**. A case's `run-eval.sh` stays short: call the
+helper for the new plan, `git show <B-sha>:specs/<f>/mainspec.md` (and its slices) for the
+old plan, then judge.
 
-Pairwise is deliberate: LLM judges are unreliable at absolute scales ("score this 7/10")
-and reliable at anchored comparison ("which plan is better on dimension X, and cite
-why"). It answers the real question — *did memory help?* — rather than *is the plan
-good?* (a plan can be good because the model is smart, with the Expert contributing
-nothing). And it gives memory edits red-before / green-after: after an Expert edit, the
-verdict on the affected dimension should flip.
+> **Run these from a human shell.** The helper launches an autonomous, file-writing
+> `claude -p`; an agent in auto mode is blocked from spawning it. Long-term-memory cases are
+> human-invoked (minutes + real tokens) and are **not** part of `scripts/local-checks.sh`.
 
-## Curated gold — the shipped diff is evidence, not truth
+## The output that matters — the attribution report
 
-For regression cases the judge also gets `gold.md` plus the real merged diff. But the
-shipped implementation is **not automatically the right answer** — sometimes the Expert
-is being updated precisely because hindsight showed the implementation should have been
-different. So:
+The eval's primary artifact is **not** a bare PASS/FAIL. It's a report that shows the
+developer *what their Expert edits did*:
 
-- At case creation, **draft** `gold.md` from the shipped diff: what the implementation
-  did, what it got right, and what hindsight says should have been different. The
-  **human edits and approves it** — gold is a human judgment call, LLM-drafted.
-- The judge grades against `gold.md`, with the raw diff attached as evidence. Where they
-  disagree, the curated notes win — the eval may deliberately *reward* plans that diverge
-  from the shipped diff.
-- Freezing a case right after a STUCK or a wince-inducing review is the cheap moment:
-  that's when the human knows exactly what should have been different.
+1. **Plan diff** — old (B) → new, human-readable: what the new plan says that the old one
+   didn't, and vice-versa.
+2. **Attribution** — each *substantive* difference tied to the Expert shard that **likely**
+   produced it ("the new plan scopes the trailing window as timezone-safe — traceable to
+   `invariant-timezone-safe-dates`"). Differences that map to **no** shard are labeled
+   **drift** (model / skill / nondeterminism), not Expert impact. Attribution is a
+   *hypothesis*, never proof — say "likely"; let the drift bucket absorb what memory can't
+   explain. That bucket is the load-bearing guard against the confound below.
+3. **Rubric verdict** — judge the new plan against the old on the co-authored rubric
+   (below), **blind** (label the two A/B, order shuffled), then reveal which is new. A
+   one-line net read sits on top: the Expert edits **helped / were neutral / hurt** — and
+   *hurt ⇒ the eval fails* (an edit made the plan worse).
 
-## The rubric (`judge.md` — the hackable seam)
+**The confound to name out loud.** The old plan was generated *then* (older model, older
+spec-planning); the new plan *now*. So "the new plan is better" is not automatically "your
+Expert helped." The attribution step is the safeguard: only **shard-traceable** improvements
+count as Expert wins; a better-but-unattributable plan is drift. Also surface **what Expert
+the baseline had**: a feature that shipped *before* the Expert was seeded shows the whole
+Expert's value in one shot; one that shipped *with* a rich Expert shows only your
+*incremental* edits. Show the baseline's Expert state so the verdict can be read honestly.
 
-Binary pass/fail per dimension — no scales — and every verdict must **cite** the Expert
-shard or gold evidence that justifies it. No passing on vibes.
+## The rubric (`judge.md` — co-authored, approved before any run)
 
-1. **Names & abstractions** — the plan speaks in the project's real terms and extends
-   existing abstractions rather than inventing parallel ones.
-2. **Patterns followed** — the `pattern-*` shards in scope are honored.
-3. **Invariants addressed** — enumerate the `invariant-*` shards in scope; each is
-   satisfied by the plan or explicitly handled. (Closest to mechanical; highest signal.)
-4. **Reuse over reinvention** — the plan points at existing code/utilities the Expert
-   documents instead of planning new ones.
-5. **Verification native to the project** — slices verify the way this project verifies
-   (its frameworks, `how-to-*` procedures, the PRD runner named in the final slice).
+**The rubric is the work, and it is the developer's.** Do not draft it alone and present it
+— build it *with* them, iterate, and get explicit sign-off *before* running. Seed it from
+ground truth you put in front of them: the **PRD + runner** (the why/what) and the **code
+diff (C)** (what a passing, quality implementation actually looked like). Walk the diff with
+them; say plainly "the implementation looks good," or surface the *non-nitpick* things that
+could have been better — those become criteria that reward a plan for steering around them.
 
-Deliberately **excluded**: plan-structure quality (slice sizing, ordering) — that
-measures `/spec-planning`, not the Expert. Keep the eval's blast radius on the lever
-being iterated.
+The spine is three criteria (add project-/feature-specific ones live, with the human):
 
-**The missing-shard listing (the generative output).** The judge's report must end with:
-*"what should the Expert have contained that would have improved this plan?"* — each
-candidate grounded in `gold.md` (it must point at something the gold says a good plan
-does that this plan missed). Candidates are proposals: the human curates, writes the
-shard only if it generalizes beyond this one case, re-runs, and watches the verdict
-flip. Every eval run is a grade *and* an improvement backlog.
+1. **Sufficiency for correctness** — would an implementer following this plan plausibly
+   reach an implementation that passes `run-prd-test.sh`? (Grounded in the runner + diff.)
+2. **Sufficiency for quality** — does the plan steer toward the bar the shipped code met:
+   reusing what exists, honoring the project's rules (the `invariant-*` / `pattern-*` shards
+   in scope), not reinventing? (Grounded in the diff + the Expert.)
+3. **What could've been better** — the per-case criteria seeded by the diff walk above. This
+   is where "the shipped impl was itself suboptimal, so reward a plan that diverges" lives —
+   folded into the rubric conversation instead of a separate `gold.md`.
+
+Judge each criterion as a **comparison** (new better / old better / tie), with a citation:
+the plan text plus the shard or diff evidence. No absolute scores, no passing on vibes.
+Deliberately **excluded**: plan-structure polish (slice sizing, ordering) — that measures
+`/spec-planning`, not the Expert.
+
+**Every run is also a backlog.** The judge ends with *"what should the Expert have contained
+that would have improved the weaker plan?"* — each candidate pointing at something the diff
+shows a good plan needs but the plan missed. The human curates: write the shard only if it
+generalizes beyond this one case, re-run, watch the verdict move.
 
 ## Suite discipline
 
 Small and curated — 3–5 cases spanning work types (a product feature, a refactor, a
-bugfix) — grown from real failures: when a STUCK diagnosis lands on "Expert gap," freeze
-that feature as a case. Don't chase volume; every case is a vector that shifts behavior.
+bugfix) — grown from real features: when a STUCK diagnosis or a build audit lands on
+"Expert gap," freeze that feature as a case. Don't chase volume; every case is a vector
+that shifts behavior.
 
 **Rubric validity is checked against the outer loop.** The harness's production attempt
-counters and STUCK rate are the ground truth: if eval scores rise over time but
-implement attempts don't fall, the rubric is measuring the wrong thing — fix `judge.md`,
-not the suite.
+counters and STUCK rate are the ground truth: if eval verdicts trend "Expert helped" over
+time but implement attempts don't fall, the rubric is measuring the wrong thing — fix
+`judge.md`, not the suite.
 
 ---
 
@@ -261,14 +285,19 @@ grep -q '^PASS' <<<"$verdict"
 `/intent` requires a PRD runner to **fail for the right reason** before the feature
 exists. An eval is the mirror:
 
-1. **It must FAIL against the context that misled the agent.** Run it *before* the
-   context fix — red, exercising the actual defect. An eval that passes trivially proves
-   nothing and is worse than no eval (it reads as "covered" while covering nothing).
-2. **It must PASS once the context fix is in.** Re-run after — green. Red-before,
-   green-after is the proof that the eval and the fix are about the same thing.
+1. **Its verdict must move when the context moves.** For a long-term-memory case: with the
+   shard under test *removed* from the Expert, the new plan should collapse toward the old
+   one (the attributable difference disappears); with it *in*, the difference appears and
+   the verdict favors it. For a lint case: red against the misleading message, green once
+   it's fixed. An eval whose verdict doesn't depend on the context it tests proves nothing —
+   it reads as "covered" while covering nothing.
+2. **A long-term-memory case passes on attribution, not just on winning.** The new plan
+   must beat the old *and* the improvement must be **traceable to a shard**, not to drift.
+   If the new plan wins but nothing ties the win to the Expert, you haven't shown memory
+   helped — tighten the case or the rubric.
 
-If you can't get an eval to go red against the defect, you haven't understood the defect
-yet — go back to the trace.
+If you can't make a case's verdict flip by adding/removing the shard under test, you
+haven't isolated the defect yet — go back to the diff and the trace.
 
 ## When NOT to write an eval
 

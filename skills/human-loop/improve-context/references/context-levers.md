@@ -59,8 +59,8 @@ agents keep re-deriving in traces as `how-to-*` shards; write the human's standi
 direction as `decision-*` shards (with an *Until fulfilled* note); **retire abandoned
 decisions** — ones the project walked away from that no merge ever fulfilled, which
 only a human can judge dead (`/learn` retires the fulfilled ones automatically); measure
-it all with `evals/long-term-memory/` (see `evals.md` — pairwise ablation makes "did
-memory help?" a runnable question).
+it all with `evals/long-term-memory/` (see `evals.md` — re-plan a merged feature with
+today's Expert vs. the plan that shipped, making "did my edits help?" a runnable question).
 
 ## /intent — the input lever
 
@@ -119,7 +119,8 @@ permanent.
 
 ## Evals — the lever that measures the levers
 
-`evals/long-term-memory/` asks "does the Expert improve plans?"; `evals/lints/` asks "do
-lint messages work as prompts?". Both are committed to the project and run where the
-human is — the fast feedback loop that tells the developer whether their context edits
+`evals/long-term-memory/` asks "did the Expert change the plan, for the better?" (re-plan a
+merged feature with today's Expert, compare against the plan that shipped); `evals/lints/`
+asks "do lint messages work as prompts?". Both are committed to the project and run where
+the human is — the fast feedback loop that tells the developer whether their context edits
 are actually helping, without waiting for production PRs. Full contract: `evals.md`.

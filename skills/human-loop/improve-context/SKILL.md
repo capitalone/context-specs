@@ -75,8 +75,8 @@ You are a guide, not a checklist. Read the seam references as they become releva
   the four lenses, the backward-tracing triage, and where fixes land (PR branch vs.
   capture branch). *(Hackable seam: how deep to read.)*
 - `references/evals.md` — the two eval families (`evals/long-term-memory/`,
-  `evals/lints/`), the pairwise-ablation recipe, curated gold, the rubric, and the
-  right-reason check. *(Hackable seam: the judge rubrics.)*
+  `evals/lints/`), the new-vs-old temporal comparison + attribution report, the co-authored
+  rubric, and the right-reason check. *(Hackable seam: the judge rubrics.)*
 
 ## Routing by invocation
 
@@ -147,11 +147,16 @@ Discover the harness's state and propose the highest-leverage focus:
 
 Two families, committed to the project under `evals/`, run where the user is:
 
-- **`evals/long-term-memory/`** — does the Expert actually improve spec plans? Judge the
-  *plan* (mainspec + slices), never a re-implementation: run `/spec-planning` twice for a
-  fixture PRD (with the Expert vs. without), have an LLM judge compare the two blind and
-  check the winner against a human-curated `gold.md`. Harvest real fixtures from merged
-  features with `scripts/harvest-eval-inputs.sh`.
+- **`evals/long-term-memory/`** — did the Expert change the plan, for the better? Judge the
+  *plan* (mainspec + slices), never a re-implementation. Temporal, not synthetic: re-run
+  spec-planning *now* against a merged feature's **pre-plan** checkout with **today's
+  Expert**, and compare against the **plan that actually shipped** (both already in git). The
+  primary output is an **attribution report** — each plan change tied to the shard that
+  likely caused it (unattributable = drift) — plus a blind rubric verdict. No `gold.md`; the
+  rubric is co-authored with the human and seeded from the PRD + runner + real code diff.
+  `scripts/harvest-eval-inputs.sh` prints the (A) pre-plan + (B) old-plan shas per feature;
+  `scripts/plan-in-isolation.sh` re-plans the harness's way (it **inspects** the harness's
+  invocation rather than hardcoding `claude -p`).
 - **`evals/lints/`** — is each lint's error message a sufficient *prompt*? Mock a
   violation, run the lint, feed **only its error message** to a cold `claude -p`, judge
   whether that alone was enough to diagnose and fix.
@@ -186,8 +191,9 @@ green-after).
 
 - **Never write `main` autonomously, never merge, never close a PR** — the human decides;
   you act (C8).
-- **Never fabricate an eval that passes trivially.** Red against the defect, green after
-  the fix, or it proves nothing (`references/evals.md`).
+- **Never fabricate an eval that passes trivially.** Its verdict must move with the context
+  it tests — a long-term-memory case's win must be **traceable to a shard**, not drift; a
+  lint case red-before / green-after — or it proves nothing (`references/evals.md`).
 - **Never gatekeep a memory edit because it isn't in the code yet** — direction and
   decisions belong in the Expert (C4).
 - **Never over-fit memory.** A hard task is not a context defect; a clean trail produces
