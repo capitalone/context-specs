@@ -93,6 +93,11 @@ model for "runnable definition of correct":
 - **Internals are free** — deterministic checks, a `claude -p` judge, or a mix.
 - **Self-contained under the case dir.** Fixtures, judge prompt, helpers all live beside
   the runner, sandboxed from the project's own test discovery.
+- **Feed a judge prompt on STDIN, never as an argv string.** An eval prompt bundles big
+  inputs (a code diff, both plans, every shard) and blows past Linux's 128 KiB
+  per-argument cap (`MAX_ARG_STRLEN`) → "Argument list too long". Use `claude -p … < file`
+  or a `<<PROMPT` heredoc. Corollary: **cache the expensive step** (the re-plan) under a
+  gitignored `.cache/` so a judge-prompt or rubric fix never re-triggers it.
 
 ---
 
@@ -257,8 +262,13 @@ here="$(cd "$(dirname "$0")" && pwd)"
 msg="$(bash "$(git rev-parse --show-toplevel)/scripts/lints/<lint>.sh" "$here/fixture" 2>&1)" && {
   echo "fixture did not trip the lint — fixture or lint is broken"; exit 1; }
 
-fix="$(claude -p "You are fixing a failed check in an unfamiliar repo. The only
-information you have is this failure message and the file(s) it names.
+# Feed the prompt on STDIN (heredoc), never as an argv string. A fixture, code diff, or
+# plan pasted into the prompt can exceed Linux's 128 KiB PER-ARGUMENT cap (MAX_ARG_STRLEN,
+# separate from ARG_MAX) and abort with "Argument list too long". `<<PROMPT` (or `< file`)
+# routes through a pipe, which has no such limit; argv-form `claude -p "$big"` does not.
+fix="$(claude -p <<PROMPT
+You are fixing a failed check in an unfamiliar repo. The only information you have is
+this failure message and the file(s) it names.
 
 ===== FAILURE MESSAGE =====
 $msg
@@ -266,14 +276,19 @@ $msg
 ===== FIXTURE =====
 $(cat "$here"/fixture/*)
 
-Describe the exact change you would make, and why.")"
+Describe the exact change you would make, and why.
+PROMPT
+)"
 
-verdict="$(claude -p --model claude-haiku-4-5 "$(cat "$here/judge.md")
+verdict="$(claude -p --model claude-haiku-4-5 <<PROMPT
+$(cat "$here/judge.md")
 
 ===== PROPOSED FIX =====
 $fix
 
-Answer with a single line: PASS or FAIL: <one-line reason>.")"
+Answer with a single line: PASS or FAIL: <one-line reason>.
+PROMPT
+)"
 echo "$verdict"
 grep -q '^PASS' <<<"$verdict"
 ```
