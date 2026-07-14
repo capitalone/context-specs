@@ -55,8 +55,11 @@ What you learn can be frozen as runnable evals, committed to your project under
 - **`evals/lints/`** — is each lint's failure message a sufficient prompt? A mocked
   violation, the message alone, a cold `claude -p`, a judge.
 
-Every eval must go red against the defect and green after the fix — the same
-right-reason discipline as the PRD runner.
+Each eval prints a **report** — to your terminal and to `<case>/.cache/last-report.md`, so
+the skill reads it with you and helps you decide the next move (keep the edit, refine it, or
+revert). Its **verdict must move** when the context under test moves — worse against the
+defect, better after the fix — the same right-reason discipline as the PRD runner, but the
+signal is the report's verdict, not a pass/fail exit code.
 
 ## How it reaches memory
 

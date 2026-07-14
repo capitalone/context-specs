@@ -47,8 +47,8 @@ the system that produces the next hundred PRs.
   gatekeep an edit because "the code doesn't show it yet". Long-term memory informs
   short-term memory (spec planning), which is where every feature starts.
 - **C5 — Evals freeze what you learned.** A context insight that lives only in this
-  conversation dies with it. Freeze it: an eval that fails against the context that misled
-  the agent and passes once it's fixed (red-before / green-after). The rubric is iterated
+  conversation dies with it. Freeze it: an eval whose verdict reads worse against the context
+  that misled the agent and better once it's fixed (red-before / green-after). The rubric is iterated
   *with* the human — that iteration is the work, not overhead. (`references/evals.md`.)
 - **C6 — No worktrees; run where the human is.** You operate in the user's own checkout.
   Eval definitions and context fixes are committed to the project (`evals/`, the Expert,
@@ -76,7 +76,8 @@ You are a guide, not a checklist. Read the seam references as they become releva
   capture branch). *(Hackable seam: how deep to read.)*
 - `references/evals.md` — the two eval families (`evals/long-term-memory/`,
   `evals/lints/`), the new-vs-old temporal comparison + attribution report, the co-authored
-  rubric, and the right-reason check. *(Hackable seam: the judge rubrics.)*
+  rubric, the right-reason check, and the report-driven handoff (*the eval ends in a
+  conversation* — you read the report, drive next steps). *(Hackable seam: the judge rubrics.)*
 
 ## Routing by invocation
 
@@ -139,7 +140,8 @@ Discover the harness's state and propose the highest-leverage focus:
   (present? within line caps? pointing into the Expert?), the Expert (empty skeleton or
   populated? stale? any `decision-*` shards that look **abandoned** — old, and no merge
   ever fulfilled them?), `/intent` (are recent PRDs/runners sharp?), lints (do failure
-  messages read as fix-prompts?), evals (does `evals/` exist? passing?). Let the human
+  messages read as fix-prompts?), evals (does `evals/` exist? do the cases still *run*, and
+  what did the last report say?). Let the human
   pick; when they have no preference, recommend the emptiest high-leverage lever — an
   empty Expert first, always.
 
@@ -160,6 +162,15 @@ Two families, committed to the project under `evals/`, run where the user is:
 - **`evals/lints/`** — is each lint's error message a sufficient *prompt*? Mock a
   violation, run the lint, feed **only its error message** to a cold `claude -p`, judge
   whether that alone was enough to diagnose and fix.
+
+**An eval ends in a conversation, not an exit code.** You can't run `run-eval.sh` yourself
+(it spawns `claude -p`); the human runs it, the report prints to their terminal *and* tees
+to `<case>/.cache/last-report.md`. `Read` that file the moment the run returns — the verdict
+line (`HELPED | NEUTRAL | HURT`, or `PASS | FAIL`) is content to interpret, never a gate —
+then recommend the next move on the edit they just made: keep, refine the shard, or revert.
+Tell them why they run it and not you, flag a marginal verdict as one nondeterministic draw
+before anyone reverts, and treat their disagreement with the judge as a cue to tune
+`judge.md` (`references/evals.md` — *The eval ends in a conversation*).
 
 Outer-loop check: the harness's production attempt counters and STUCK rate are the
 ground truth for whether the rubric measures the right thing. If eval scores rise but
@@ -184,8 +195,8 @@ implement attempts don't fall, fix the rubric, not the suite.
 ## Idempotency & re-running
 
 Always safe. A forensic pass persists nothing on its own; context edits and evals are
-ordinary commits on a branch. Re-running an eval is the *point* (red-before /
-green-after).
+ordinary commits on a branch. Re-running an eval is the *point*: its report verdict should
+move when the context under test moves (red-before / green-after).
 
 ## Hard nevers
 

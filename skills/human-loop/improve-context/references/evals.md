@@ -32,7 +32,7 @@ one of the harness's managed per-feature worktrees.)
 │   └── <case>/
 │       ├── fixture/                 # feature slug + (A) pre-plan sha + (B) old-plan sha
 │       ├── judge.md                 # the co-authored rubric (hackable seam)
-│       └── run-eval.sh              # new-vs-old attribution report; exit 0 iff Expert didn't hurt
+│       └── run-eval.sh              # prints new-vs-old attribution report (terminal + .cache); verdict is content, not the exit code
 └── lints/
     └── <lint-name>/
         ├── fixture/                 # a mocked violation of the lint
@@ -61,35 +61,59 @@ Evals test the **harness** ("given this context, does it behave?");
 `prds/<f>/run-prd-test.sh` tests the **product** ("does the feature work?"). Keep them
 separate.
 
-Contract: one dir per case — `<family>/<case>/{fixture/, judge.md, run-eval.sh}`.
-`run-eval.sh` exits 0 iff the expected behavior holds. A new eval's verdict must MOVE with
-the context it tests — a long-term-memory case: the Expert edit changes the plan for the
-better; a lint case: red before the message fix, green after.
+Contract: one dir per case — `<family>/<case>/{fixture/, judge.md, run-eval.sh}`. Each
+`judge.md` opens with a one-line note on what defect or shard the case froze, so a cold
+reader of the dir understands it. `run-eval.sh` prints a **report** (to the terminal and to
+`<case>/.cache/last-report.md`) whose **verdict line** — `HELPED | NEUTRAL | HURT` or
+`PASS | FAIL` — is the signal; the exit code only says whether the case *ran*. Read the
+report and discuss it. A new eval's verdict must MOVE with the context it tests — a
+long-term-memory case: the Expert edit changes the plan for the better; a lint case: the
+message reads FAIL before the fix, PASS after.
 ```
 
 `evals/run-all.sh`:
 
 ```bash
 #!/usr/bin/env bash
-# Run every eval case (both families, plus any legacy flat cases). Exit 0 iff all pass.
+# Run every eval case (both families, plus any legacy flat cases) and print each report.
+# This is a RUNNABILITY smoke test, not a quality gate: a case exits non-zero only when it
+# couldn't RUN (missing sha, crashed re-plan/judge). The helped/hurt verdict lives inside
+# each report — read it and discuss it (see references/evals.md). Exit 0 iff every case ran.
 set -uo pipefail
 here="$(cd "$(dirname "$0")" && pwd)"
-fail=0 ran=0
+broke=0 ran=0
 for runner in "$here"/*/run-eval.sh "$here"/*/*/run-eval.sh; do
   [[ -e "$runner" ]] || continue
   ran=$((ran + 1)); name="${runner#"$here"/}"; name="${name%/run-eval.sh}"
-  if bash "$runner"; then echo "PASS  $name"; else echo "FAIL  $name"; fail=1; fi
+  echo "===== $name ====="
+  if bash "$runner"; then echo "ran    $name"; else echo "BROKE  $name (couldn't run — not a verdict)"; broke=1; fi
 done
 (( ran == 0 )) && echo "no evals yet (evals/<family>/<case>/run-eval.sh)"
-exit $fail
+exit $broke
 ```
 
-## The runner contract (mirrors the PRD runner deliberately)
+## The runner contract
 
-`run-eval.sh` borrows `run-prd-test.sh`'s shape exactly, so the project has *one* mental
-model for "runnable definition of correct":
+`run-eval.sh` shares `run-prd-test.sh`'s *runnable-file* shape — one script under the case
+dir you invoke directly — but its **signal is different on purpose.** A PRD runner's exit
+code is a **binary gate the harness consumes** ("does the feature work? exit 0, or the build
+stops"). An eval asks a **spectrum** question — *did this context help, hurt, or do nothing?*
+— that no machine gates on and that a human and Claude **discuss.** So the eval's output
+contract is a report, not an exit code:
 
-- **Exit 0 = the expected behavior holds; non-zero = it doesn't.** That's the whole API.
+- **Primary output = a report, printed to the terminal AND tee'd to a file.** The full
+  report goes to stdout so the human sees the result the instant the run ends — never "go
+  open a file." It is *also* written to a gitignored `<case>/.cache/last-report.md` so Claude
+  can `Read` it directly and drive next steps — the human never copy-pastes (see *The eval
+  ends in a conversation*, below).
+- **The verdict lives inside the report, as content.** A machine-visible line — `VERDICT:
+  HELPED | NEUTRAL | HURT` for a long-term-memory case, `PASS | FAIL: <reason>` for a lint
+  case — is what Claude reads and the human reacts to. It is *not* the exit code.
+- **Exit code = operational success only.** Exit 0 = the eval *ran* and produced a report;
+  non-zero *only* when it couldn't run (a missing sha, a crashed re-plan or judge, a fixture
+  that didn't trip the lint). A HURT verdict is a successful run with a bad result — it still
+  exits 0. Nothing automated consumes this code; it exists so `run-all.sh` can flag a case
+  that is *broken*, not one whose context underperformed.
 - **Internals are free** — deterministic checks, a `claude -p` judge, or a mix.
 - **Self-contained under the case dir.** Fixtures, judge prompt, helpers all live beside
   the runner, sandboxed from the project's own test discovery.
@@ -98,6 +122,49 @@ model for "runnable definition of correct":
   per-argument cap (`MAX_ARG_STRLEN`) → "Argument list too long". Use `claude -p … < file`
   or a `<<PROMPT` heredoc. Corollary: **cache the expensive step** (the re-plan) under a
   gitignored `.cache/` so a judge-prompt or rubric fix never re-triggers it.
+
+---
+
+# The eval ends in a conversation (both families)
+
+An eval doesn't end at an exit code — it ends with **you reading the report and helping the
+human decide what to do next.** This is where the skill's division of labor pays off: the
+human knows their project; you know the machinery (what a HURT verdict implies, which shard
+to narrow or revert). Don't let a run terminate in silence.
+
+**Why the human runs it, not you.** `run-eval.sh` spawns `claude -p` (the re-plan, the
+judge), and an agent in auto mode is blocked from spawning another Claude — so you *can't*
+run it, but you *can* read what it wrote. Say this to the human in one breath, so "run this
+yourself" doesn't read as you being lazy:
+
+> *I can't run this — it invokes `claude -p`, which an agent in auto mode is blocked from
+> spawning. Run it in your shell; the report prints right there, and I'll read it too so we
+> can decide the next move together.*
+
+**The handoff, concretely:**
+
+1. The human runs the case (or `run-all.sh`) in their shell. The report prints to their
+   terminal immediately and lands at `<case>/.cache/last-report.md`.
+2. **You `Read` that file** — proactively, the moment the run returns. Never make the human
+   copy-paste it or open it themselves.
+3. **You read the verdict and name it:** helped / neutral / hurt, in one line.
+4. **You recommend a next action tied to the edit they just made** — keep the shard, refine
+   its `USE WHEN` line, or revert it. A HURT verdict means the edit made the plan *worse*;
+   the move is usually to narrow or revert, not to keep tuning. The human decides; you act
+   (C8).
+
+**Three things to hold as you interpret a report:**
+
+- **It's one draw.** The new plan came from a single nondeterministic `claude -p` re-plan; a
+  marginal verdict (a hair better, a hair worse) can flip between runs. Before you recommend
+  reverting on a thin margin, say so and re-run once — don't revert a shard on noise.
+- **Disagreement is calibration, not friction.** When the human reads the same plans and
+  disagrees with the judge's verdict, that's the signal `judge.md` is miscalibrated — fold
+  their reasoning into the rubric and note it for the next run. The conversation *is* how the
+  judge improves (the human-review layer married to the automated one).
+- **Every report is also a backlog.** The judge ends with "what should the Expert have
+  contained that would have improved the weaker plan?" — walk those candidates with the
+  human and write the shard only if it generalizes (see Family 1).
 
 ---
 
@@ -180,8 +247,15 @@ developer *what their Expert edits did*:
    explain. That bucket is the load-bearing guard against the confound below.
 3. **Rubric verdict** — judge the new plan against the old on the co-authored rubric
    (below), **blind** (label the two A/B, order shuffled), then reveal which is new. A
-   one-line net read sits on top: the Expert edits **helped / were neutral / hurt** — and
-   *hurt ⇒ the eval fails* (an edit made the plan worse).
+   one-line net read sits on top, emitted as a machine-visible `VERDICT: HELPED | NEUTRAL |
+   HURT` line: the Expert edits **helped / were neutral / hurt**. A HURT verdict means an edit
+   made the plan *worse* — a successful run with a result to act on (narrow or revert the
+   shard), **not** a failed eval; the run still exits 0, and only a broken re-plan or judge
+   exits non-zero.
+
+Print the whole report to stdout **and** tee it to `<case>/.cache/last-report.md`, so the
+human sees it in their terminal and you can `Read` it — then drive the handoff (*The eval
+ends in a conversation*).
 
 **The confound to name out loud.** The old plan was generated *then* (older model, older
 spec-planning); the new plan *now*. So "the new plan is better" is not automatically "your
@@ -193,7 +267,9 @@ Expert's value in one shot; one that shipped *with* a rich Expert shows only you
 
 ## The rubric (`judge.md` — co-authored, approved before any run)
 
-**The rubric is the work, and it is the developer's.** Do not draft it alone and present it
+**The rubric is the work, and it is the developer's.** Open `judge.md` with a one-line note
+on what this case froze — the defect or shard under test — so a cold reader of the dir knows
+why it exists. Do not draft the rubric alone and present it
 — build it *with* them, iterate, and get explicit sign-off *before* running. Seed it from
 ground truth you put in front of them: the **PRD + runner** (the why/what) and the **code
 diff (C)** (what a passing, quality implementation actually looked like). Walk the diff with
@@ -289,8 +365,19 @@ $fix
 Answer with a single line: PASS or FAIL: <one-line reason>.
 PROMPT
 )"
-echo "$verdict"
-grep -q '^PASS' <<<"$verdict"
+
+# The verdict is CONTENT, not the exit code. Print the report to the terminal for the human
+# and tee it for Claude to Read; exit 0 because the eval RAN — a FAIL verdict is a successful
+# run with a result to act on (the message needs WHERE/WHAT/WHY/FIX work). A non-zero exit
+# happens only above, when the fixture didn't trip the lint or a `claude -p` call errored.
+# See "The eval ends in a conversation" in references/evals.md.
+mkdir -p "$here/.cache"
+{
+  echo "VERDICT: $verdict"
+  echo
+  echo "===== PROPOSED FIX ====="
+  echo "$fix"
+} | tee "$here/.cache/last-report.md"
 ```
 
 ---
@@ -303,9 +390,9 @@ exists. An eval is the mirror:
 1. **Its verdict must move when the context moves.** For a long-term-memory case: with the
    shard under test *removed* from the Expert, the new plan should collapse toward the old
    one (the attributable difference disappears); with it *in*, the difference appears and
-   the verdict favors it. For a lint case: red against the misleading message, green once
-   it's fixed. An eval whose verdict doesn't depend on the context it tests proves nothing —
-   it reads as "covered" while covering nothing.
+   the verdict favors it. For a lint case: the verdict line reads FAIL against the misleading
+   message and PASS once it's fixed. An eval whose verdict doesn't depend on the context it
+   tests proves nothing — it reads as "covered" while covering nothing.
 2. **A long-term-memory case passes on attribution, not just on winning.** The new plan
    must beat the old *and* the improvement must be **traceable to a shard**, not to drift.
    If the new plan wins but nothing ties the win to the Expert, you haven't shown memory
