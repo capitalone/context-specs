@@ -42,24 +42,41 @@ symptom), and walks the diagnosis-first order: fix the context that misled the a
 the branch, then the code, then merge — the merge carries both, and `/learn` makes the
 context fix permanent. See [Unstick a feature](./unstick-a-feature.md).
 
-## The two eval families
+## Evals — freezing what you learn
 
-What you learn can be frozen as runnable evals, committed to your project under
-`evals/` and run right where you are — no worktrees, no harness machinery:
+What you learn can be frozen as runnable evals, committed to your project under `evals/`
+and run right where you are. Their folder tree mirrors your project's own context levers,
+and every case is graded against a **rubric of your intent** — how the system should
+behave, its conventions, its direction — never against the shipped code (that would be
+circular: the lesson you just added is already in the code). The rule that keeps it honest:
+a criterion rewards a shard's **effect**, not its **echo** — it tests the outcome the shard
+produces, not whether a plan quotes it.
 
-- **`evals/long-term-memory/`** — does the Expert actually improve spec plans? Real
-  PRDs from shipped features become fixtures; `/spec-planning` runs with and without
-  the Expert; an LLM judge compares the plans blind against a **human-approved gold**.
-  The judge also reports what the Expert *should* have contained — each run is a grade
-  and an improvement backlog.
-- **`evals/lints/`** — is each lint's failure message a sufficient prompt? A mocked
-  violation, the message alone, a cold `claude -p`, a judge.
+Evals come in two kinds:
+
+- **Single-lever checks (Tier 1) — cheap, many.** Each tests **one** context lever on its
+  own. `evals/expert/` and `evals/agents-md/` ask "did this shard/line change the plan, for
+  the better?" by answering the same targeted planning question **twice — once with the
+  context, once without — then comparing** (so the verdict moves with the context by
+  construction). `evals/intent/` gates whether a PRD + runner is a sufficient, right-reason
+  spec; `evals/lints/` asks whether a lint's failure message works as a fix-prompt read
+  cold.
+- **Whole-plan checks (Tier 2) — expensive, few.** Re-plan an entire feature at HEAD — once
+  with the shard, once without — and judge the whole plan. This is the real `/spec-planning`
+  invocation, where all your levers converge. Kept small (3–5, spanning work types); the
+  disposable re-plan is the only worktree involved, torn down after.
+
+**Where to start.** Fill in single-lever checks before reaching for whole-plan ones — the
+skill suggests this, and you can override it. The highest-leverage place to begin is a shard
+in the Expert (`evals/expert/`), because long-term memory feeds the spec plan, which shapes
+**every future feature**: a fix there tunes the input to every plan the harness will ever
+write. You're working at the level of the whole system, not one feature.
 
 Each eval prints a **report** — to your terminal and to `<case>/.cache/last-report.md`, so
 the skill reads it with you and helps you decide the next move (keep the edit, refine it, or
-revert). Its **verdict must move** when the context under test moves — worse against the
-defect, better after the fix — the same right-reason discipline as the PRD runner, but the
-signal is the report's verdict, not a pass/fail exit code.
+revert). Its **verdict must move** when the context under test moves — the same right-reason
+discipline as the PRD runner, but the signal is the report's verdict (`HELPED | NEUTRAL |
+HURT`, or `PASS | FAIL`), not a pass/fail exit code.
 
 ## How it reaches memory
 

@@ -1,6 +1,6 @@
 ---
 name: improve-context
-description: The harness concierge for improving a project's context — the human-in-the-loop expert on every context lever (AGENTS.md, the Expert long-term memory, /intent, local-check lints) and on STUCK forensics. Use to resolve a STUCK PR (diagnosis-first), to improve any lever ("improve long-term memory with X"), or with no args to survey the harness's state and pick the highest-leverage improvement. Builds and runs evals over the project's own context (long-term-memory evals and lint evals under evals/). Replaces /evaluate-sessions. Triggers - improve-context, improve context, unstick, diagnose stuck, STUCK, evaluate sessions, review the build trail, improve long-term memory, seed the Expert, tune AGENTS.md, lint quality, harness evals.
+description: The harness concierge for improving a project's context — the human-in-the-loop expert on every context lever (AGENTS.md, the Expert long-term memory, /intent, local-check lints) and on STUCK forensics. Use to resolve a STUCK PR (diagnosis-first), to improve any lever ("improve long-term memory with X"), or with no args to survey the harness's state and pick the highest-leverage improvement. Builds and runs evals over the project's own context (a per-lever pyramid under evals/, graded on a developer-intent rubric). Replaces /evaluate-sessions. Triggers - improve-context, improve context, unstick, diagnose stuck, STUCK, evaluate sessions, review the build trail, improve long-term memory, seed the Expert, tune AGENTS.md, lint quality, harness evals.
 ---
 
 # improve-context
@@ -74,10 +74,12 @@ You are a guide, not a checklist. Read the seam references as they become releva
 - `references/stuck-forensics.md` — session IDs from the PR comment, reading traces with
   the four lenses, the backward-tracing triage, and where fixes land (PR branch vs.
   capture branch). *(Hackable seam: how deep to read.)*
-- `references/evals.md` — the two eval families (`evals/long-term-memory/`,
-  `evals/lints/`), the new-vs-old temporal comparison + attribution report, the co-authored
-  rubric, the right-reason check, and the report-driven handoff (*the eval ends in a
-  conversation* — you read the report, drive next steps). *(Hackable seam: the judge rubrics.)*
+- `references/evals.md` — the eval **pyramid**: Tier-1 per-lever cases (`expert/`,
+  `agents-md/`, `intent/`, `lints/`) and few Tier-2 `spec-planning/` integration cases,
+  all graded against a **developer-intent rubric** (never the shipped code), the
+  reward-effect-not-echo rule, the right-reason check, and the report-driven handoff (*the
+  eval ends in a conversation* — you read the report, drive next steps). *(Hackable seam:
+  the judge rubrics.)*
 
 ## Routing by invocation
 
@@ -108,8 +110,8 @@ the right destinations?).
 landing", "seed the Expert" — go straight to that lever per `references/context-levers.md`.
 For the Expert specifically: elicit what the human knows that the agents keep re-deriving
 or getting wrong, draft the shards with them (prefixed files, `USE WHEN:` lines, routing
-table rows), and offer a long-term-memory eval to make the improvement measurable
-(before/after — `references/evals.md`).
+table rows), and offer an `expert/` with-and-without eval to make the improvement
+measurable (compare the plan with the shard and without it — `references/evals.md`).
 
 **Decisions are a lever of their own.** When the human states *direction* the code
 hasn't caught up to ("we're moving to X", "new code should do Y"), write it as a
@@ -147,21 +149,33 @@ Discover the harness's state and propose the highest-leverage focus:
 
 ## The eval discipline (summary — full contract in `references/evals.md`)
 
-Two families, committed to the project under `evals/`, run where the user is:
+Evals live in the project under `evals/`, run where the user is, and form a **pyramid**
+whose folder tree mirrors the project's evaluable levers. **Ground truth is a
+developer-intent rubric, co-authored with the human — never the shipped code** (that's
+circular; the lesson you just added to the Expert is already in the code). The anti-overfit
+rule: reward a shard's **effect**, not its **echo** — a criterion tests the outcome a shard
+produces at a plan locus that could plausibly fail, not whether the plan quotes it.
 
-- **`evals/long-term-memory/`** — did the Expert change the plan, for the better? Judge the
-  *plan* (mainspec + slices), never a re-implementation. Temporal, not synthetic: re-run
-  spec-planning *now* against a merged feature's **pre-plan** checkout with **today's
-  Expert**, and compare against the **plan that actually shipped** (both already in git). The
-  primary output is an **attribution report** — each plan change tied to the shard that
-  likely caused it (unattributable = drift) — plus a blind rubric verdict. No `gold.md`; the
-  rubric is co-authored with the human and seeded from the PRD + runner + real code diff.
-  `scripts/harvest-eval-inputs.sh` prints the (A) pre-plan + (B) old-plan shas per feature;
-  `scripts/plan-in-isolation.sh` re-plans the harness's way (it **inspects** the harness's
-  invocation rather than hardcoding `claude -p`).
-- **`evals/lints/`** — is each lint's error message a sufficient *prompt*? Mock a
-  violation, run the lint, feed **only its error message** to a cold `claude -p`, judge
-  whether that alone was enough to diagnose and fix.
+- **Tier 1 — single-lever checks, cheap, many.** `expert/` and `agents-md/` (feedforward
+  guides) probe a targeted planning question **with vs. without** the shard/line and compare
+  the two answers — so the delta *is* the attribution and the verdict moves with the context
+  by construction. `intent/` and `lints/` (input / feedback sensor) grade an artifact against
+  an absolute PASS/FAIL bar (a PRD/runner's sufficiency; a lint message read cold as a
+  fix-prompt).
+- **Tier 2 — whole-plan checks (`spec-planning/`), integration, FEW.** Re-plan a feature at
+  **HEAD** with vs. without the shard and judge the whole plan — the real `/spec-planning`
+  invocation, where all levers converge. This skill's own `scripts/plan-in-isolation.sh`
+  (under the skill folder, not the project's `scripts/`) does the re-plan the harness's way
+  (it **inspects** the invocation rather than hardcoding `claude -p`), `--ablate <shard>` for
+  the baseline arm. Judge the *plan* (mainspec + slices), never a re-implementation. 3–5
+  cases, spanning work types.
+
+**Where to point the human first.** If the project has few or no single-lever (Tier-1)
+checks, build those before any whole-plan (Tier-2) case — and start with `expert/`, the
+biggest lever: long-term memory feeds the spec plan, which shapes every future feature, so a
+shard check tunes the whole system, not one feature. Say this in plain terms — the human may
+not have read this skill, so don't lean on "Tier 1 / Tier 2" without unpacking them. They
+can override the order.
 
 **An eval ends in a conversation, not an exit code.** You can't run `run-eval.sh` yourself
 (it spawns `claude -p`); the human runs it, the report prints to their terminal *and* tees
@@ -203,8 +217,9 @@ move when the context under test moves (red-before / green-after).
 - **Never write `main` autonomously, never merge, never close a PR** — the human decides;
   you act (C8).
 - **Never fabricate an eval that passes trivially.** Its verdict must move with the context
-  it tests — a long-term-memory case's win must be **traceable to a shard**, not drift; a
-  lint case red-before / green-after — or it proves nothing (`references/evals.md`).
+  it tests, and reward the shard's **effect, not its echo** — a with-and-without case must
+  swing when the shard is added/removed; a gate case reads FAIL before the fix, PASS after — or it
+  proves nothing (`references/evals.md`).
 - **Never gatekeep a memory edit because it isn't in the code yet** — direction and
   decisions belong in the Expert (C4).
 - **Never over-fit memory.** A hard task is not a context defect; a clean trail produces

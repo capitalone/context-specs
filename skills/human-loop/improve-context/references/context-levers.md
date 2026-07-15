@@ -59,8 +59,10 @@ agents keep re-deriving in traces as `how-to-*` shards; write the human's standi
 direction as `decision-*` shards (with an *Until fulfilled* note); **retire abandoned
 decisions** — ones the project walked away from that no merge ever fulfilled, which
 only a human can judge dead (`/learn` retires the fulfilled ones automatically); measure
-it all with `evals/long-term-memory/` (see `evals.md` — re-plan a merged feature with
-today's Expert vs. the plan that shipped, making "did my edits help?" a runnable question).
+it all with `evals/expert/` (Tier-1 probe: answer a targeted planning question **with vs.
+without** the shard) and, for the real invocation, a few `evals/spec-planning/` cases (see
+`evals.md`) — making "did my edits help?" a runnable question graded on intent, not on the
+shipped code.
 
 ## /intent — the input lever
 
@@ -119,8 +121,12 @@ permanent.
 
 ## Evals — the lever that measures the levers
 
-`evals/long-term-memory/` asks "did the Expert change the plan, for the better?" (re-plan a
-merged feature with today's Expert, compare against the plan that shipped); `evals/lints/`
-asks "do lint messages work as prompts?". Both are committed to the project and run where
-the human is — the fast feedback loop that tells the developer whether their context edits
-are actually helping, without waiting for production PRs. Full contract: `evals.md`.
+Evals form a **pyramid** whose folder tree mirrors the levers above, all graded against a
+**developer-intent rubric** (never the shipped code — that's circular). **Tier 1** is one
+cheap family per lever: `evals/expert/` and `evals/agents-md/` ablate a shard/line ("does
+the plan honor it, with vs. without?"), `evals/intent/` gates a PRD/runner's sufficiency,
+`evals/lints/` asks "does this lint message work as a fix-prompt read cold?". **Tier 2** is
+a few `evals/spec-planning/` integration cases — the real `/spec-planning` invocation where
+all levers converge. Committed to the project and run where the human is: the fast feedback
+loop that tells the developer whether their context edits are actually helping, without
+waiting for production PRs. Full contract: `evals.md`.
