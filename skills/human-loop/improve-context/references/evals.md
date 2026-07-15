@@ -160,6 +160,12 @@ contract is a report, not an exit code:
 - **The verdict lives inside the report, as content.** A machine-visible line — `VERDICT:
   HELPED | NEUTRAL | HURT` for a with-and-without family, `PASS | FAIL: <reason>` for a
   gate family — is what Claude reads and the human reacts to. It is *not* the exit code.
+- **A `claude -p` arm names its session id in the report, and the report ends with a
+  "reply `done`" footer.** For the families that *invoke* Claude to produce an arm (`expert/`,
+  `spec-planning/`), print each arm's `--session-id` so the skill can resolve the trace
+  (`~/.claude/projects/*/<id>.jsonl`) and read *why* an arm answered as it did — the tie-breaker
+  for a NEUTRAL. The footer tells the human to return to the session and reply `done`, closing
+  the human→session loop instead of leaving the report to be discovered.
 - **Exit code = operational success only.** Exit 0 = the eval *ran* and produced a report;
   non-zero *only* when it couldn't run (a crashed re-plan or judge, a fixture that didn't
   trip a lint). A HURT / FAIL verdict is a successful run with a bad result — it still
@@ -188,8 +194,10 @@ re-plan, the judge), and an agent in auto mode is blocked from spawning another 
 you *can't* run it, but you *can* read what it wrote. Say this to the human in one breath:
 
 > *I can't run this — it invokes `claude -p`, which an agent in auto mode is blocked from
-> spawning. Run it in your shell; the report prints right there, and I'll read it too so we
-> can decide the next move together.*
+> spawning. Run it in your shell; the report prints right there. When it finishes, come back
+> here and reply `done` — I'll read the report and the reasoning traces and we'll decide the
+> next move together.* (The report's own footer says the same, so it's on screen when the run
+> ends.)
 
 **The handoff, concretely:**
 
@@ -198,9 +206,25 @@ you *can't* run it, but you *can* read what it wrote. Say this to the human in o
 2. **You `Read` that file** — proactively, the moment the run returns. Never make the human
    copy-paste it.
 3. **You read the verdict and name it:** helped / neutral / hurt (or pass / fail), in one line.
-4. **You recommend a next action tied to the edit they just made** — keep the shard, refine
-   its `USE WHEN` line, or revert it. A HURT verdict means the edit made the plan *worse*;
-   the move is usually to narrow or revert, not to keep tuning. The human decides; you act.
+4. **You recommend a next action tied to the edit they just made** — one of **keep · refine
+   the `USE WHEN` line · delete the shard · consolidate it into a sibling · revert**. A HURT
+   verdict means the edit made the plan *worse* — usually narrow or revert. The human decides;
+   you act.
+
+**NEUTRAL is not a dead end — it's a fork, and the reasoning traces resolve it.** A NEUTRAL
+means arm A and arm B came out equivalent, but *why* determines the move, so `Read` the two
+session traces the report names (`~/.claude/projects/*/<id>.jsonl` — resolve by id) whenever
+the verdict is ambiguous or the human disputes it (skip it when the verdict is obvious):
+
+- **The shard WAS consulted and the answer didn't change** → the model already knows this
+  (or a sibling covers it). The shard is redundant → **recommend deleting it** (and this
+  eval case). Lean toward delete — a shard that earns nothing is standing noise. *Exception:*
+  keep it if it states **direction/decision** the model wouldn't infer, even when today's
+  output already complies.
+- **The shard was NEVER routed to** (`/expert` opened other files, not this one) → the
+  content may be fine; the **`USE WHEN` line missed**. → refine the routing line, re-run.
+- **A sibling shard restated the rule** (you'll see it opened in the trace) → the two overlap
+  → **consolidate**: promote any unique detail into the sibling and delete the rest.
 
 **Three things to hold as you interpret a report:**
 
@@ -222,66 +246,117 @@ you *can't* run it, but you *can* read what it wrote. Say this to the human in o
 
 Every Tier-1 case is small, cheap, and probes **one** context lever. The runner shape and
 scoring mode fall out of the lever's role (`context-levers.md`): **feedforward guides**
-(Expert, AGENTS.md) steer the plan *before* the work, so we compare them with vs. without
-(does removing this context make the output worse?); **inputs and sensors** (`/intent`,
-lints) are graded as
-artifacts against an absolute bar.
+(Expert, AGENTS.md) steer the plan *before* the work, so we compare with vs. without (does
+removing this context make the output worse?); **inputs and sensors** (`/intent`, lints) are
+graded as artifacts against an absolute bar.
+
+Among the guides, the lever's **eager-vs-lazy** nature picks the mechanism. `AGENTS.md` is
+*eager* — always loaded — so pasting the line into the probe is faithful. The Expert is
+*lazy* — `/expert` routes to shards on demand — so its probe must **invoke the real skill**
+and let it route, or it would never test the routing that decides whether the shard is even
+seen. That is why `expert/` runs `probe-expert.sh` (below) while `agents-md/` just feeds text.
 
 ## `expert/` — did a shard steer the plan, for the better? (with vs. without)
 
-The Expert is the biggest lever. A probe asks a **targeted planning question** for a tiny
-scenario, twice: once with the shard-under-test available, once without. The delta *is* the
-attribution — no guessing which change "likely traces to" the shard, and the verdict moves
-with the context by construction.
+The Expert is the biggest lever, and unlike AGENTS.md it is **lazy** — `/expert` is a skill
+with a routing table, and the agent *chooses* which shards to open by matching `USE WHEN`
+lines. So the faithful probe doesn't paste the shard's text in; it **invokes the real
+`/expert` skill** and lets it route. That tests two things a text probe can't: whether the
+shard's content changes the plan *and* whether the routing table actually surfaces it.
 
-- **`fixture/`** — a short scenario (a task/planning question, LLM-drafted and
-  human-steered) plus the name of the shard under test and the other shards in scope.
-- **Faithfulness note:** the probe feeds the in-scope shard(s) to `claude -p` directly — a
-  unit-test approximation of "the shard was consulted." Whether `/spec-planning` *actually*
-  pulls the shard at the right moment is the Tier-2 question, not this one.
+`scripts/probe-expert.sh` (this skill's own, sibling to `plan-in-isolation.sh`) does this in
+a **minimal sandbox** — a throwaway dir holding ONLY `.claude/skills/expert` (a copy of the
+working-tree Expert), no codebase. It `cd`s in and runs one `claude -p` that must consult
+`/expert`, then answer the scenario's planning question. Two payoffs: it's cheap (it skips
+the whole-codebase analysis that makes Tier-2 slow — the reason we can afford one per shard),
+and the baseline arm is **hermetic** — with no codebase and the shard removed there is
+nothing on disk to leak the rule back, so a NEUTRAL means the model already knew it.
+
+Two baseline modes (arm A is always the current Expert):
+
+- **with/without** (`--ablate <shard>`) — arm B removes the shard file, strikes its
+  routing-table row, and **de-links inbound `[[shard]]` references** in sibling shards (a
+  dangling wikilink would tell the baseline "a rule lived here"). Sibling *prose* that
+  independently states the rule is left intact — that redundancy is a real signal, not a leak
+  to scrub. Use for a shard you're **adding or weighing deleting**.
+- **version-vs-version** (`--prev <shard> --prev-from <ref|path>`) — arm B swaps the shard to
+  an **older** version (a git ref, or a file), keeping the routing row so routing cancels and
+  the **wording delta** is what's judged. Use when you **edited** a shard and want to know if
+  the edit actually improved it — something with/without can't tell you. *Confirm with the
+  human which revision is "old"* (HEAD vs. a `.cache` snapshot) before running.
+
+- **`fixture/`** — `scenario.md` (a planning question, LLM-drafted and human-steered) and
+  `shard-under-test` (the shard's relpath under the Expert root). Add a `prev-from` file (a
+  git ref or path) to switch the case into version-vs-version mode.
+- **Faithfulness note:** this probe tests the Expert's routing + content *in isolation*.
+  Whether the FULL `/spec-planning` — with the codebase and every other lever competing for
+  attention — still surfaces the shard is the Tier-2 question.
 
 Skeleton `run-eval.sh`:
 
 ```bash
 #!/usr/bin/env bash
+# Invoke the REAL /expert skill in isolation, arm A (current Expert) vs arm B (shard removed,
+# or swapped to its previous version), and judge the two answers blind. Signal = the VERDICT
+# line; exit code is operational only. Run from a human shell (spawns `claude -p`).
+#   REFRESH=1 bash run-eval.sh   # regenerate both arms (else cached)
 set -uo pipefail
 here="$(cd "$(dirname "$0")" && pwd)"
-expert="$(git rev-parse --show-toplevel)/.claude/skills/expert"
-scenario="$(cat "$here"/fixture/scenario.md)"
-shard="$(cat "$here"/fixture/shard-under-test)"     # relpath under expert/ of the shard under test
+root="$(git rev-parse --show-toplevel)"
+probe="$root/.claude/skills/improve-context/scripts/probe-expert.sh"
+scenario="$here/fixture/scenario.md"
+shard="$(cat "$here/fixture/shard-under-test")"     # relpath under the Expert skill root
 mkdir -p "$here/.cache"
 
-ask() {  # $1 = file of shard relpaths (one per line) to put in scope
-  claude -p <<PROMPT
-You are planning the following task. Use this project knowledge where relevant.
-===== TASK =====
-$scenario
-===== PROJECT KNOWLEDGE =====
-$(while read -r s; do [[ -n "$s" ]] && { echo "## $s"; cat "$expert/$s"; }; done < "$1")
-Answer the ONE planning question at the end of the task. Be concrete about your approach.
-PROMPT
+# probe-expert.sh writes answer.txt + session-id under each out-dir. Cache both arms so a
+# judge/rubric edit doesn't re-trigger the expensive probe (REFRESH=1 forces a re-run).
+run_arm() {  # $1 = cache subdir; rest = probe baseline flags
+  local out="$here/.cache/$1"; shift
+  [[ -s "$out/answer.txt" && "${REFRESH:-0}" != "1" ]] && return 0
+  bash "$probe" "$scenario" "$out" "$@" >/dev/null || { echo "arm $1 failed to run"; exit 1; }
 }
-
-# Arm A: all in-scope shards.  Arm B: the same set minus the shard under test.
-grep -vxF "$shard" "$here/fixture/in-scope-shards" > "$here/.cache/without"
-with_shard="$(ask "$here/fixture/in-scope-shards")"
-without_shard="$(ask "$here/.cache/without")"
+run_arm A                                            # arm A: current Expert
+if [[ -f "$here/fixture/prev-from" ]]; then          # arm B: baseline
+  run_arm B --prev "$shard" --prev-from "$(cat "$here/fixture/prev-from")"
+else
+  run_arm B --ablate "$shard"
+fi
+A="$(cat "$here/.cache/A/answer.txt")"; B="$(cat "$here/.cache/B/answer.txt")"
+sidA="$(cat "$here/.cache/A/session-id")"; sidB="$(cat "$here/.cache/B/session-id")"
 
 # Blind, order-swapped pairwise judge on the discriminating criterion in judge.md.
-verdict="$(claude -p --model claude-haiku-4-5 <<PROMPT
+judge() {  # $1,$2 = the two answers in presentation order
+  claude -p --model claude-haiku-4-5 <<PROMPT | grep -oE 'WINNER:[[:space:]]*(A|B|TIE)' | grep -oE '(A|B|TIE)' | tail -1
 $(cat "$here/judge.md")
-Two answers, labeled A and B (order is randomized; do not assume which is which).
+Two answers, labeled A and B (order randomized; don't assume which is which).
 ===== A =====
-$with_shard
+$1
 ===== B =====
-$without_shard
-First write a one-paragraph critique grounded in the criterion, THEN a final line:
-VERDICT: HELPED | NEUTRAL | HURT   (HELPED = the shard's EFFECT is present in the
-better answer; judge the effect, not whether the words appear).
+$2
+Write a one-paragraph critique grounded in the criterion (judge its EFFECT, not whether the
+words appear), THEN end with exactly one line: "WINNER: A", "WINNER: B", or "WINNER: TIE".
 PROMPT
-)"
-{ echo "$verdict"; echo; echo "===== WITH shard ====="; echo "$with_shard";
-  echo; echo "===== WITHOUT shard ====="; echo "$without_shard"; } | tee "$here/.cache/last-report.md"
+}
+w1="$(judge "$A" "$B")"; w2="$(judge "$B" "$A")"     # order-swapped: with-as-A, then with-as-B
+[[ -n "$w1" && -n "$w2" ]] || { echo "judge emitted no WINNER line"; exit 1; }
+case "$w1" in A) r1=with;; B) r1=without;; *) r1=tie;; esac
+case "$w2" in A) r2=without;; B) r2=with;; *) r2=tie;; esac
+case "$r1:$r2" in
+  with:with)       verdict="HELPED";;
+  without:without) verdict="HURT";;
+  *)               verdict="NEUTRAL";;               # position-bias disagreement or a real tie
+esac
+
+{ echo "VERDICT: $verdict   (shard under test: $shard)"
+  echo "reasoning traces — arm A (with): $sidA   arm B (without/prev): $sidB"
+  echo; echo "===== ARM A (with shard) ====="; echo "$A"
+  echo; echo "===== ARM B (without / previous version) ====="; echo "$B"
+  echo; echo "-----"
+  echo "Above are the two answers /expert produced, with and without the shard. To decide"
+  echo "what to do, return to the Claude session that wrote this eval and reply 'done' — it"
+  echo "will read this report AND the reasoning traces above, then help you choose: keep,"
+  echo "refine the USE WHEN line, delete the shard, or consolidate it into a sibling."
+} | tee "$here/.cache/last-report.md"
 ```
 
 ## `agents-md/` — is an eager line honored? (with vs. without)

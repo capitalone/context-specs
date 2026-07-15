@@ -110,8 +110,9 @@ the right destinations?).
 landing", "seed the Expert" — go straight to that lever per `references/context-levers.md`.
 For the Expert specifically: elicit what the human knows that the agents keep re-deriving
 or getting wrong, draft the shards with them (prefixed files, `USE WHEN:` lines, routing
-table rows), and offer an `expert/` with-and-without eval to make the improvement
-measurable (compare the plan with the shard and without it — `references/evals.md`).
+table rows), and offer an `expert/` eval to make the improvement measurable — with/without
+for a **new** shard, or new-vs-previous **version** (`--prev`) when you **edited** an existing
+one, since with/without can't tell you if the edit was an improvement (`references/evals.md`).
 
 **Decisions are a lever of their own.** When the human states *direction* the code
 hasn't caught up to ("we're moving to X", "new code should do Y"), write it as a
@@ -157,11 +158,15 @@ rule: reward a shard's **effect**, not its **echo** — a criterion tests the ou
 produces at a plan locus that could plausibly fail, not whether the plan quotes it.
 
 - **Tier 1 — single-lever checks, cheap, many.** `expert/` and `agents-md/` (feedforward
-  guides) probe a targeted planning question **with vs. without** the shard/line and compare
-  the two answers — so the delta *is* the attribution and the verdict moves with the context
-  by construction. `intent/` and `lints/` (input / feedback sensor) grade an artifact against
-  an absolute PASS/FAIL bar (a PRD/runner's sufficiency; a lint message read cold as a
-  fix-prompt).
+  guides) answer a targeted planning question **with vs. without** the shard/line and compare
+  the two answers — so the delta *is* the attribution. The lever's eager-vs-lazy nature picks
+  the mechanism: `agents-md/` is eager (always loaded), so its probe pastes the line in;
+  `expert/` is lazy (`/expert` routes to shards on demand), so it **invokes the real `/expert`
+  skill in a minimal sandbox** via this skill's own `scripts/probe-expert.sh` — testing the
+  routing (`USE WHEN` → which shard opens), not just content. Its baseline is `--ablate` (with/
+  without) or `--prev … --prev-from <ref|path>` (new-vs-previous *version* of an edited shard).
+  `intent/` and `lints/` (input / feedback sensor) grade an artifact against an absolute
+  PASS/FAIL bar (a PRD/runner's sufficiency; a lint message read cold as a fix-prompt).
 - **Tier 2 — whole-plan checks (`spec-planning/`), integration, FEW.** Re-plan a feature at
   **HEAD** with vs. without the shard and judge the whole plan — the real `/spec-planning`
   invocation, where all levers converge. This skill's own `scripts/plan-in-isolation.sh`
@@ -178,12 +183,16 @@ not have read this skill, so don't lean on "Tier 1 / Tier 2" without unpacking t
 can override the order.
 
 **An eval ends in a conversation, not an exit code.** You can't run `run-eval.sh` yourself
-(it spawns `claude -p`); the human runs it, the report prints to their terminal *and* tees
-to `<case>/.cache/last-report.md`. `Read` that file the moment the run returns — the verdict
-line (`HELPED | NEUTRAL | HURT`, or `PASS | FAIL`) is content to interpret, never a gate —
-then recommend the next move on the edit they just made: keep, refine the shard, or revert.
-Tell them why they run it and not you, flag a marginal verdict as one nondeterministic draw
-before anyone reverts, and treat their disagreement with the judge as a cue to tune
+(it spawns `claude -p`); the human runs it and replies `done` (the report's footer tells them
+to). `Read` `<case>/.cache/last-report.md` the moment they do — the verdict line (`HELPED |
+NEUTRAL | HURT`, or `PASS | FAIL`) is content to interpret, never a gate — then recommend the
+next move on the edit they just made: **keep · refine the `USE WHEN` line · delete the shard ·
+consolidate into a sibling · revert**. A **NEUTRAL** is a fork, not a shrug: `Read` the two
+reasoning traces the report names (`~/.claude/projects/*/<id>.jsonl`, resolve by id) to see
+*why* — shard consulted but inert → **lean delete** (redundant memory is noise; keep only if
+it states direction the model wouldn't infer); never routed to → fix the `USE WHEN` line;
+a sibling restated it → consolidate. Flag a marginal verdict as one nondeterministic draw
+before anyone reverts, and treat the human's disagreement with the judge as a cue to tune
 `judge.md` (`references/evals.md` — *The eval ends in a conversation*).
 
 Outer-loop check: the harness's production attempt counters and STUCK rate are the
