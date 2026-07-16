@@ -73,10 +73,14 @@ Five guards keep this from becoming volume-by-checklist. **Propose; the user dis
 2. **Never auto-grandfather.** If a pattern holds in 95% of files and 5% violate it,
    that's a migration, not an enforceable invariant. Surface the violators ("clean
    these first, or this isn't lintable yet"); never silently baseline them.
-3. **Block only correctness/structural.** Layer-direction, parse-at-boundary, no SQL
-   injection, no unsafe casts → block. Legibility (grep-ability, naming) and
-   observability (logging shape) are **warn**, not block, even when the pattern is
-   real. Don't hand-author a custom lint for what the project's own linter already does.
+3. **Block only what the project has *decided*.** The line is **decided invariant vs.
+   undecided taste**, not correctness vs. legibility — layer-direction and canonical
+   placement are structural *and* legibility rules, and they block. A rule blocks when
+   the user opts in to it here (guard 5): layer-direction, parse-at-boundary, no SQL
+   injection, no unsafe casts, a naming or placement rule **they decided**. Taste nobody
+   has settled — grep-ability, log shape, style — is **warn**, even when the pattern is
+   real: an unowned rule that blocks manufactures STUCKs over a preference. Don't
+   hand-author a custom lint for what the project's own linter already does.
 4. **Scope to the actual surface, not a generic list.** Use what discovery found;
    don't ship "40 lints every Next.js app should have."
 5. **Propose, never apply.** Present each candidate with its *why* and its
@@ -87,13 +91,18 @@ discovery (invariants surfacing across merges) with its own discipline. Same
 principles, different evidence — and they live in separate skills; this file does
 not depend on `/learn`'s.
 
-## The correctness filter, at a glance
+## The filter, at a glance
 
 | Mode | What | Examples |
 |---|---|---|
-| **Block** | Correctness / structural | Lint errors, typecheck, fast tests, skip-detection, layer-direction, parse-at-boundary, no SQLi/unsafe-cast |
-| **Warn** | Legibility / observability (real but not present-tense bugs) | Grep-ability, naming conventions, log shape |
+| **Block** | **Decided invariants** — correctness, or structure the project settled on | Lint errors, typecheck, fast tests, skip-detection, layer-direction, parse-at-boundary, no SQLi/unsafe-cast, canonical placement + naming *the user opted into* |
+| **Warn** | **Undecided taste** — real patterns nobody has settled | Grep-ability, ambient naming habits, log shape |
 | **Sensor (not here)** | Test fitness | Mutation testing — async/nightly only |
+
+A structural rule isn't warn *because* it's about legibility — `layer-direction` is a
+legibility rule and it blocks. It's warn until someone **decides** it. `/improve-context`
+is where that decision gets made later (its codebase lever drives the refactor, then lands
+the lint); at init, guard 5 is where it gets made here.
 
 ## How to write a good lint
 
@@ -166,8 +175,10 @@ seeing, not suppressing.
   check. The agent-side guard against silencing lives in the `/fix-local-checks`
   prompt; the human (merge) and reviewer are the backstops. Keep the silencing-trap
   warning in each lint's own message instead.
-- **Don't chase volume.** Coverage, legibility, and style as *blocking* gates are the
-  anti-pattern. Correctness blocks; the rest warns or doesn't ship.
+- **Don't chase volume.** Coverage and *undecided* style as blocking gates are the
+  anti-pattern — blocking a build on a rule nobody chose burns attempts over a
+  preference. Decided invariants block (correctness, and the structure the user opted
+  into); unsettled taste warns or doesn't ship.
 
 ## Dependency: a runnable worktree
 

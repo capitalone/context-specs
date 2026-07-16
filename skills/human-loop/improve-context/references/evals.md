@@ -89,6 +89,13 @@ The five families map onto the project's **evaluable levers** (`context-levers.m
 they aren't evaled.) Case names are behavior slugs
 (`spec-planning-honors-ssr-constraint`), not feature names.
 
+**The codebase lever has no family here, and that's not a gap.** Its improvements are
+mechanically checkable by construction — canonical placement, naming, import direction — so
+they ratchet through **lints**, and the rule below still holds: the lint *is* the regression
+test. Where a legibility property genuinely resists a lint ("does this name convey its
+purpose?"), the skill names the drift risk to the human rather than faking coverage
+(`harnessability.md`).
+
 ### Scaffolding `evals/` on first use
 
 If the project has no `evals/` dir yet, create it with the first eval — a `README.md` and

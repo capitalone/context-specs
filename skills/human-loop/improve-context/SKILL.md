@@ -1,6 +1,6 @@
 ---
 name: improve-context
-description: The harness concierge for improving a project's context — the human-in-the-loop expert on every context lever (AGENTS.md, the Expert long-term memory, /intent, local-check lints) and on STUCK forensics. Use to resolve a STUCK PR (diagnosis-first), to improve any lever ("improve long-term memory with X"), or with no args to survey the harness's state and pick the highest-leverage improvement. Builds and runs evals over the project's own context (a per-lever pyramid under evals/, graded on a developer-intent rubric). Replaces /evaluate-sessions. Triggers - improve-context, improve context, unstick, diagnose stuck, STUCK, evaluate sessions, review the build trail, improve long-term memory, seed the Expert, tune AGENTS.md, lint quality, harness evals.
+description: The harness concierge for improving a project's context — the human-in-the-loop expert on every context lever (the codebase's own shape, AGENTS.md, the Expert long-term memory, /intent, local-check lints) and on STUCK forensics. Use to resolve a STUCK PR (diagnosis-first), to improve any lever ("improve long-term memory with X", "our folder structure is a mess"), or with no args to survey the harness's state and pick the highest-leverage improvement. Drives horizontal refactors that make the codebase legible to the next agent, and builds evals over the project's own context (a per-lever pyramid under evals/, graded on a developer-intent rubric). Replaces /evaluate-sessions. Triggers - improve-context, improve context, unstick, diagnose stuck, STUCK, evaluate sessions, review the build trail, improve long-term memory, seed the Expert, tune AGENTS.md, lint quality, harness evals, agent legibility, harnessability, folder structure, naming, our code is a mess, refactor for the agent.
 ---
 
 # improve-context
@@ -11,10 +11,10 @@ the skip rule, diagnosis-first ordering — used to land on the human all at onc
 worst possible moment (a STUCK). This skill absorbs that surface. The human brings
 judgment about *their* project; you bring the machinery.
 
-You work across the **big picture**, not one PR: every context lever the project has —
-AGENTS.md, the Expert (long-term memory), `/intent`, the lints in `local-checks.sh`, and
-the eval suites that measure them — is your territory. A STUCK PR is one entry point
-among several, not the job description.
+You work across the **big picture**, not one PR: every context lever the project has — **the
+codebase's own shape**, AGENTS.md, the Expert (long-term memory), `/intent`, the lints in
+`local-checks.sh`, and the eval suites that measure them — is your territory. A STUCK PR is
+one entry point among several, not the job description.
 
 This is a **high-degree-of-freedom, human-attentive skill.** A person is present; it runs
 in their own checkout; it ends when they decide. Don't march through steps — read the
@@ -41,11 +41,22 @@ the system that produces the next hundred PRs.
   often **upstream** of where the symptom appeared — a step fails three times because the
   previous step wrote a flawed spec. Start at the struggle, trace backward. No mechanical
   rules; let the evidence decide. (`references/stuck-forensics.md`.)
-- **C4 — Memory is the developer's biggest lever.** The Expert holds anything that helps
-  the next agent plan or build better — current facts *and* decisions, direction,
-  aspirations not yet in code. Help the human write it **rapidly and constantly**; never
-  gatekeep an edit because "the code doesn't show it yet". Long-term memory informs
-  short-term memory (spec planning), which is where every feature starts.
+- **C4 — Memory is the developer's biggest lever for what the code can't say.** The Expert
+  holds anything that helps the next agent plan or build better and that **structure cannot
+  carry** — decisions, direction, why a boundary exists, aspirations not yet in code. Help the
+  human write it **rapidly and constantly**; never gatekeep an edit because "the code doesn't
+  show it yet". Long-term memory informs short-term memory (spec planning), which is where
+  every feature starts. Its bar is the ladder in C10: if the code could carry it, refactor
+  instead of writing it down.
+- **C10 — The code is context too, and it's the only context that can't lie.** A folder named
+  `auth/` containing only auth *is* that claim — it can't drift out of sync with itself. The
+  ladder is **prose → structure → lint**: prose rots and costs tokens every session; structure
+  is free (the agent sees it regardless) and self-enforcing, but decays; a lint can't be
+  violated but only reaches what's mechanical. Every move is downhill. **A shard that
+  describes structure is a bug report against the structure** — so a legibility refactor is
+  the rare improvement that *deletes* context. This work is **horizontal**: it steers future
+  agents and changes no behavior. Features go through the harness; this doesn't
+  (`references/harnessability.md`).
 - **C5 — Evals freeze what you learned.** A context insight that lives only in this
   conversation dies with it. Freeze it: an eval whose verdict reads worse against the context
   that misled the agent and better once it's fixed (red-before / green-after). The rubric is iterated
@@ -71,8 +82,12 @@ You are a guide, not a checklist. Read the seam references as they become releva
 - `references/context-levers.md` — **the map.** Every lever: what it is, its cost model,
   how to improve it, where its knobs live. Read this first, always. *(Hackable seam: a
   project can annotate levers with its own priorities.)*
+- `references/harnessability.md` — **the codebase lever.** The prose → structure → lint
+  ladder, the probe menu (free/mechanical first), the refactor tiers, and the rule that every
+  refactor lands with an enforcer or a named drift risk. *(Hackable seam: a project's own
+  probes and work types.)*
 - `references/stuck-forensics.md` — session IDs from the PR comment, reading traces with
-  the four lenses, the backward-tracing triage, and where fixes land (PR branch vs.
+  the five lenses, the backward-tracing triage, and where fixes land (PR branch vs.
   capture branch). *(Hackable seam: how deep to read.)*
 - `references/evals.md` — the eval **pyramid**: Tier-1 per-lever cases (`expert/`,
   `agents-md/`, `intent/`, `lints/`) and few Tier-2 `spec-planning/` integration cases,
@@ -91,7 +106,7 @@ of the failing output. Flow (diagnosis-first, C2 / C3):
 1. `scripts/resolve-sessions.sh <PR#|feature>` — session IDs → local JSONL trace paths.
 2. Triage from the table: high `Attempt`, non-zero `Exit` — tell the human where you're
    starting and why, in two lines.
-3. Read the trail with the four lenses (`references/stuck-forensics.md`), tracing
+3. Read the trail with the five lenses (`references/stuck-forensics.md`), tracing
    backward to the earliest point where context first led an agent wrong.
 4. Classify each finding *with* the human: **context defect** (fixable) or **inherent
    difficulty** (name it, move on — C9).
@@ -107,7 +122,10 @@ the right destinations?).
 ### (b) A free-text direction — drive that lever
 
 "Improve long-term memory with our new auth direction", "our lint messages aren't
-landing", "seed the Expert" — go straight to that lever per `references/context-levers.md`.
+landing", "seed the Expert", "our folder structure is a mess", "the agent keeps putting
+things in the wrong place" — go straight to that lever per `references/context-levers.md`.
+The last two are the **codebase** lever: run the probes in `references/harnessability.md`,
+show the human what you found, and pick a refactor tier with them.
 For the Expert specifically: elicit what the human knows that the agents keep re-deriving
 or getting wrong, draft the shards with them (prefixed files, `USE WHEN:` lines, routing
 table rows), and offer an `expert/` eval to make the improvement measurable — with/without
@@ -139,14 +157,22 @@ Discover the harness's state and propose the highest-leverage focus:
   plus open draft PRs and PRs carrying the harness's STUCK / "Ready for your review"
   comments.
 - A STUCK found → propose starting there (route a).
-- Nothing stuck → present the lever menu with a one-line health read of each: AGENTS.md
-  (present? within line caps? pointing into the Expert?), the Expert (empty skeleton or
-  populated? stale? any `decision-*` shards that look **abandoned** — old, and no merge
-  ever fulfilled them?), `/intent` (are recent PRDs/runners sharp?), lints (do failure
+- Nothing stuck → present the lever menu with a one-line health read of each: **the codebase**
+  (run the *free/mechanical* probes in `references/harnessability.md` — grab-bag scan,
+  Expert-compensation scan, variant count; seconds, zero tokens, so they run on **every**
+  survey), AGENTS.md (present? within line caps? pointing into the Expert?), the Expert (empty
+  skeleton or populated? stale? any `decision-*` shards that look **abandoned** — old, and no
+  merge ever fulfilled them?), `/intent` (are recent PRDs/runners sharp?), lints (do failure
   messages read as fix-prompts?), evals (does `evals/` exist? do the cases still *run*, and
   what did the last report say?). Let the human
   pick; when they have no preference, recommend the emptiest high-leverage lever — an
   empty Expert first, always.
+
+  The codebase row must be **specific or absent**: name the folder, count the variants, name
+  the geography shard. "Consider improving structure" is not a finding — a legible codebase
+  correctly reads clean (C7). Weight one finding above the rest: a variant the **harness itself
+  is drifting toward, against the Expert's stated intent** — that's live divergence, and it
+  compounds on the next PR.
 
 ## The eval discipline (summary — full contract in `references/evals.md`)
 
@@ -206,7 +232,9 @@ implement attempts don't fall, fix the rubric, not the suite.
   (typically: seed the empty Expert). **Not** the dispatcher; this is a human-in-the-loop
   skill, like `/intent` and `/evaluate-pr`.
 - **Outputs:** zero or more **context edits** (Expert / AGENTS.md / a skill's text /
-  `scripts/lints/` + `local-checks.sh`), zero or more **evals** under `evals/`, committed
+  `scripts/lints/` + `local-checks.sh`), zero or more **horizontal refactors** (renames,
+  moves, splits, consolidations that change no behavior — `references/harnessability.md`),
+  zero or more **evals** under `evals/`, committed
   on the PR's branch or a fresh `capture/<slug>` branch — never on `main` directly (with
   one exception: when there is no PR in play and the human explicitly asks to commit
   memory edits straight to their current branch, that's their call — C8). A STUCK
@@ -231,6 +259,14 @@ move when the context under test moves (red-before / green-after).
   proves nothing (`references/evals.md`).
 - **Never gatekeep a memory edit because it isn't in the code yet** — direction and
   decisions belong in the Expert (C4).
+- **Never refactor on taste.** A refactor needs a named probe finding behind it — a lying
+  name, a counted variant, a geography shard — not a preference. "I'd have named it
+  differently" is churn (C7).
+- **Never let a horizontal refactor become feature work.** No behavior change. The moment it
+  changes what the product does, it's a PRD and it belongs to the harness — stop and say so.
+- **Never land a lint before its migration completes.** A lint must pass against current code
+  and never auto-grandfather violators; the green lint *is* the proof the refactor finished
+  (`references/harnessability.md`).
 - **Never over-fit memory.** A hard task is not a context defect; a clean trail produces
   nothing (C7, C9).
 - **Never edit `prds/<f>/prd.md`** — the spec of record stays off-limits; fix context and

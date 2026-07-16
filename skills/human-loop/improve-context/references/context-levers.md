@@ -12,11 +12,44 @@ fix fixes one feature; a context fix upgrades every future feature.
 
 | Lever | Loading | Cost model | Bar |
 |---|---|---|---|
+| **The codebase** | **Retrieved** — agentic search, every task | Unavoidable; can't be pruned, only made cheaper to read | Consistency over cleverness |
 | `AGENTS.md` (root + nested) | **Eager** — every session that touches the folder | Paid in tokens whether or not it's relevant | Highest — five predicates |
 | The Expert (`.claude/skills/expert/`) | **Lazy** — pulled on demand | Paid only when consulted | Looser — the default home for real knowledge |
 | `/intent` (`prds/<f>/prd.md` + `run-prd-test.sh`) | Input to the whole chain | One PRD per feature | Garbage in, garbage out |
 | Lints (`scripts/lints/` + `local-checks.sh`) | Deterministic, every check pass | Runs forever, free after authoring | Mechanically checkable only |
 | Evals (`evals/`) | Human-invoked | One run per iteration | Measures the other levers |
+
+## The codebase — retrieved context (the shape the agent copies)
+
+Every other lever on this list is an artifact *about* the code. This one is the code — the
+highest-volume context any agent reads, and the only one that **cannot lie**: a folder named
+`auth/` containing only auth *is* that claim, and it can't drift out of sync with itself.
+
+Its loading mode is neither eager nor lazy but **retrieved** — pulled in by agentic search, grep
+by grep, on every task. That dictates what "improve" even means. You can't prune it like an
+AGENTS.md line or route to it like a shard. The only knob is **how far an agent searches before
+it finds the right thing, and whether the first thing it finds is the one you'd want copied** —
+because agents imitate their nearest neighbor.
+
+**The ladder: prose → structure → lint.** Prose can rot and costs tokens every session; structure
+is free (the agent sees it regardless) and can't self-contradict, but decays; a lint can't be
+violated but only covers what's mechanical. Every move is downhill — which gives the rule that
+arbitrates between this lever and the Expert:
+
+> **If the code can carry it, the code should. A shard that describes structure is a bug report
+> against the structure.**
+
+**The coupling worth knowing:** you can only scope rules as well as your folders are scoped.
+Illegible structure forces rules up into the eager, global `AGENTS.md` where every line taxes
+every session. A legibility refactor unlocks demoting a global rule into a nested one.
+
+This is **horizontal work** — steering future agents, never feature work (features go through the
+harness). The human is present to understand how they're steering, not to do the cleaning.
+
+**Improvement moves:** run the free probes (grab-bag scan, Expert-compensation scan, variant
+counting), then pick a tier with the human — rename/move/split (minutes), consolidate variants
+(an hour), or establish a canonical pattern + lint (rare). Every refactor lands with an enforcer
+or a named drift risk. Full contract: `harnessability.md`.
 
 ## AGENTS.md — eager memory
 
@@ -34,7 +67,14 @@ into pointers at Expert shards; check traces for agents that never opened the Ex
 before a non-trivial decision — that's usually a *missing pointer* here, not an agent
 failure.
 
-## The Expert — lazy long-term memory (the biggest lever)
+## The Expert — lazy long-term memory (the biggest lever for what the code can't say)
+
+The biggest lever the **developer writes** — and the boundary matters: the Expert holds what the
+**code cannot say** (direction, why, scars, decisions); the codebase holds where things go and
+what gets copied. They don't compete. The ladder above arbitrates: if structure could carry it,
+structure should, and a shard that describes *where things live* is a refactor candidate, not
+memory. A shard explaining *why* a boundary exists is legitimate; one explaining *where* the code
+is is debt (`harnessability.md`).
 
 The project's long-term memory, `.claude/skills/expert/` — a routing-table `SKILL.md`
 plus one small reference file per topic. Six prefixes map to memory types:

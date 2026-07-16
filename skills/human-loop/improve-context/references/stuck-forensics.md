@@ -2,7 +2,7 @@
 
 This is the discipline behind route (a). The goal is not to *summarize* every session —
 that's a transcript dump, and it tells you nothing. The goal is to read the few sessions
-that fought, with the four lenses, until you can name which piece of context shaped each
+that fought, with the five lenses, until you can name which piece of context shaped each
 decision the human cares about — then land the fix where it survives.
 
 > Governing principle: **the sessions are evidence, not the verdict.** You are reading
@@ -82,7 +82,7 @@ There are **no mechanical rules** ("failed N times at step X → step X is to bl
 position is a starting line. Let the evidence decide. Tell the human where you're starting and
 why in two lines before diving, and update them as the trail leads you upstream.
 
-## The four reading lenses
+## The five reading lenses
 
 For each session you open, ask in roughly this order. Each is about the *context*, not the
 code.
@@ -100,6 +100,11 @@ code.
 4. **Decision-provenance — grounded or guessed?** When the agent made a load-bearing choice,
    trace it back: did it cite the PRD/spec/Expert, or invent it? A guessed decision that
    happened to be right is still a context gap — next time it guesses wrong.
+5. **Navigation cost — what did it have to *search* for that a name should have told it?**
+   Repeated greps for one concept, the wrong file opened first, a convention re-derived from
+   scratch, a `utils/` opened just to find out what's in it. The other four lenses ask what
+   the *prose* got wrong; this one asks what the **codebase's own shape** failed to teach
+   (`harnessability.md`). Cheap to read — you already have the trail open.
 
 ## Classify, don't accumulate
 
@@ -122,7 +127,14 @@ project's memory uses:
   included. The lint *is* the regression test — don't also write an eval for it.
 - **Eager prose (AGENTS.md)** — only when it clears all five predicates (see
   `context-levers.md`); root or the nested file the rule is local to.
-- **Lazy prose (an Expert reference file)** — the default home. Pick the file by prefix
+- **The codebase itself** — when the defect is that the *structure* misled or hid: the agent
+  searched for something a name should have told it, or copied the nearest example and the
+  nearest example was wrong. **Check this before reaching for a shard.** If the shard you're
+  about to write would only restate what structure could carry — where a thing lives, what a
+  folder holds — refactor instead; the shard would be a bug report against the structure
+  (`harnessability.md`). Horizontal only: no behavior change.
+- **Lazy prose (an Expert reference file)** — the default home for what structure *can't*
+  carry (why a boundary exists, not where it is). Pick the file by prefix
   (`how-to-*`, `concept-*`, `pattern-*`, `invariant-*`, `example-*`); if none fits, write
   a clear, correctly-scoped new shard.
 - **A decision (`decision-*`)** — when the defect is that the agent had no *direction*:

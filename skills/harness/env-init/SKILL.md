@@ -133,8 +133,9 @@ owns and tunes this script. Two responsibilities:
 - **Propose custom correctness lints** from the codebase as-is (snapshot
   discovery), behind the five guards in the reference.
 
-The gate proves **correctness, not coverage** — block only
-correctness/structural, warn on legibility. The **skip rule** is load-bearing:
+The gate proves **correctness, not coverage** — block only what the project
+**decided** (correctness, plus structure the user opts into), warn on
+undecided taste. The **skip rule** is load-bearing:
 an agent may never add a test-skip marker; a legitimate skip is the human's
 call at STUCK. If the project has no deterministic checks, skip this step —
 the dispatcher treats the script as absent and works fine.
