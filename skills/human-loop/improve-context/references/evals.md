@@ -274,7 +274,7 @@ nothing on disk to leak the rule back, so a NEUTRAL means the model already knew
 
 Two baseline modes (arm A is always the current Expert):
 
-- **with/without** (`--ablate <shard>`) — arm B removes the shard file, strikes its
+- **with/without** (`--without <shard>`) — arm B removes the shard file, strikes its
   routing-table row, and **de-links inbound `[[shard]]` references** in sibling shards (a
   dangling wikilink would tell the baseline "a rule lived here"). Sibling *prose* that
   independently states the rule is left intact — that redundancy is a real signal, not a leak
@@ -319,7 +319,7 @@ run_arm A                                            # arm A: current Expert
 if [[ -f "$here/fixture/prev-from" ]]; then          # arm B: baseline
   run_arm B --prev "$shard" --prev-from "$(cat "$here/fixture/prev-from")"
 else
-  run_arm B --ablate "$shard"
+  run_arm B --without "$shard"
 fi
 A="$(cat "$here/.cache/A/answer.txt")"; B="$(cat "$here/.cache/B/answer.txt")"
 sidA="$(cat "$here/.cache/A/session-id")"; sidB="$(cat "$here/.cache/B/session-id")"
@@ -476,7 +476,7 @@ This skill's own `scripts/plan-in-isolation.sh` (in the skill folder — **not**
 repo-root `scripts/`) does all of this. Given a feature it spins a *disposable*
 worktree at **HEAD** (not a harness-managed one), overlays the env's current working-tree
 Expert, links the skills, invokes `/spec-planning <feature>` the harness's way, captures
-`specs/<f>/` off disk, and deletes the worktree. With `--ablate <relpath>` it removes that
+`specs/<f>/` off disk, and deletes the worktree. With `--without <relpath>` it removes that
 context file (a shard, or an AGENTS.md overlay) before planning — that's arm B. A case's
 `run-eval.sh` calls it twice:
 
@@ -493,7 +493,7 @@ mkdir -p "$here/.cache"
 [[ -d "$here/.cache/A/plan" ]] || bash "$root/skills/human-loop/improve-context/scripts/plan-in-isolation.sh" \
   "$feature" "$here/.cache/A"                       # arm A: current context
 [[ -d "$here/.cache/B/plan" ]] || bash "$root/skills/human-loop/improve-context/scripts/plan-in-isolation.sh" \
-  "$feature" "$here/.cache/B" --ablate "$shard"     # arm B: shard removed
+  "$feature" "$here/.cache/B" --without "$shard"    # arm B: shard removed
 
 # Blind, order-swapped pairwise judge on the co-authored intent rubric.
 verdict="$(claude -p <<PROMPT

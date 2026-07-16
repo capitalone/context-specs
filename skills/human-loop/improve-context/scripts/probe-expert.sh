@@ -6,17 +6,19 @@
 # It builds a MINIMAL SANDBOX — a throwaway dir containing ONLY `.claude/skills/expert`
 # (a copy of the env's CURRENT working-tree Expert), nothing else — cd's in, and runs one
 # `claude -p` that consults /expert and answers the planning question. Because NO codebase
-# is present, the baseline arm is HERMETIC: with the shard removed there is nothing on disk
-# to leak it back, so a NEUTRAL verdict means the model already knew it, not that it peeked.
-# (The "what happens in a full plan, with the codebase" question is Tier 2 — plan-in-isolation.sh.)
+# is present, the without-shard arm is HERMETIC: with the shard removed there is nothing on
+# disk to leak it back, so a NEUTRAL verdict means the model already knew it, not that it
+# peeked. (The "what happens in a full plan, with the codebase" question is Tier 2 —
+# plan-in-isolation.sh.)
 #
 #   Usage:
 #     probe-expert.sh <scenario-file> <out-dir> [BASELINE] [--env-root <dir>]
 #
 #   BASELINE — pick AT MOST ONE; omit it for the full-context "with-shard" arm (arm A):
-#     --ablate <relpath>                  arm B (with/without): remove references/<shard>.md
-#                                         AND strike its routing-table row, so the shard
-#                                         looks like it never existed.
+#     --without <relpath>                 arm B (with/without): remove references/<shard>.md,
+#                                         strike its routing-table row, AND strip inbound
+#                                         references to it from sibling shards, so the shard
+#                                         looks like it was cleanly deleted.
 #     --prev <relpath> --prev-from <src>  arm B (version-vs-version): replace
 #                                         references/<shard>.md with an OLDER version, keeping
 #                                         its routing row (routing cancels; the wording delta
@@ -39,10 +41,10 @@
 # RUN IT FROM A HUMAN SHELL. It launches `claude -p`; an agent in auto mode can't spawn that.
 set -uo pipefail
 
-scenario_file=""; out_dir=""; ablate=""; prev=""; prev_from=""; env_root=""
+scenario_file=""; out_dir=""; without=""; prev=""; prev_from=""; env_root=""
 while (( $# )); do
   case "$1" in
-    --ablate)    ablate="${2:?--ablate needs a relpath}"; shift 2 ;;
+    --without)   without="${2:?--without needs a relpath}"; shift 2 ;;
     --prev)      prev="${2:?--prev needs a relpath}"; shift 2 ;;
     --prev-from) prev_from="${2:?--prev-from needs a ref or path}"; shift 2 ;;
     --env-root)  env_root="${2:?--env-root needs a dir}"; shift 2 ;;
@@ -54,9 +56,9 @@ while (( $# )); do
 done
 
 [[ -n "$scenario_file" && -n "$out_dir" ]] || {
-  echo "usage: probe-expert.sh <scenario-file> <out-dir> [--ablate <relpath> | --prev <relpath> --prev-from <src>] [--env-root <dir>]" >&2
+  echo "usage: probe-expert.sh <scenario-file> <out-dir> [--without <relpath> | --prev <relpath> --prev-from <src>] [--env-root <dir>]" >&2
   exit 64; }
-[[ -z "$ablate" || -z "$prev" ]] || { echo "probe-expert: --ablate and --prev are mutually exclusive" >&2; exit 64; }
+[[ -z "$without" || -z "$prev" ]] || { echo "probe-expert: --without and --prev are mutually exclusive" >&2; exit 64; }
 [[ -z "$prev" || -n "$prev_from" ]] || { echo "probe-expert: --prev requires --prev-from <ref|path>" >&2; exit 64; }
 [[ -z "$prev_from" || -n "$prev" ]] || { echo "probe-expert: --prev-from requires --prev <relpath>" >&2; exit 64; }
 
@@ -92,27 +94,36 @@ git -C "$sandbox" init -q >/dev/null 2>&1 || true          # a real project root
 expert_sb="$sandbox/.claude/skills/expert"
 
 # --- apply the baseline transform to the sandbox's Expert copy ---
-if [[ -n "$ablate" ]]; then
-  [[ -e "$expert_sb/$ablate" ]] || die "--ablate target not in Expert: $ablate"
-  rm -f "$expert_sb/$ablate"
-  base="$(basename "$ablate" .md)"                    # kebab-case slug; safe inside an ERE
+if [[ -n "$without" ]]; then
+  [[ -e "$expert_sb/$without" ]] || die "--without target not in Expert: $without"
+  rm -f "$expert_sb/$without"
+  base="$(basename "$without" .md)"                  # kebab-case slug; safe inside an ERE
   # 1. strike the shard's routing-table ROW from SKILL.md — remove the whole line, not just
   #    the link, so no half-row is left dangling in the table.
   if [[ -f "$expert_sb/SKILL.md" ]] && grep -qF "[[$base]]" "$expert_sb/SKILL.md"; then
     grep -vF "[[$base]]" "$expert_sb/SKILL.md" > "$expert_sb/SKILL.md.tmp" \
       && mv "$expert_sb/SKILL.md.tmp" "$expert_sb/SKILL.md"
   fi
-  # 2. de-link INBOUND [[base]] / [[base|alias]] references in the remaining shard bodies to
-  #    plain text. A dangling wikilink tells the baseline "a rule lived here" (the probe even
-  #    reads it as "not written yet") — a clean deletion fixes inbound refs, a sloppy one
-  #    leaks. Sibling PROSE that independently states the rule is left INTACT: that redundancy
-  #    is a real, delete-relevant signal, not a leak to scrub.
+  # 2. strip INBOUND references to the shard from the remaining shard bodies, modelling a
+  #    CLEAN deletion (the Expert's "reconcile, don't accumulate" doctrine fixes inbound refs
+  #    on delete). Remove the common cross-reference wrappers whole — "(see [[X]])",
+  #    "— see [[X]]" — so no named-but-missing reference tells the baseline "a shard should
+  #    exist here" (it would otherwise recommend writing it). De-link any remaining [[X]] as
+  #    a fallback. Sibling PROSE that independently states the rule is left INTACT: that
+  #    redundancy is a real, delete-relevant signal, not a leak to scrub.
   while IFS= read -r -d '' f; do
-    sed -i -E "s/\[\[$base\|([^]]*)\]\]/\1/g; s/\[\[$base\]\]/$base/g" "$f"
+    sed -i -E \
+      -e "s/ *\(see \[\[$base\]\]\)//g" \
+      -e "s/ *— see \[\[$base\]\]//g" \
+      -e "s/ *-- see \[\[$base\]\]//g" \
+      -e "s/,? *see \[\[$base\]\]//g" \
+      -e "s/\[\[$base\|([^]]*)\]\]/\1/g" \
+      -e "s/\[\[$base\]\]/$base/g" \
+      "$f"
   done < <(find "$expert_sb" -type f -name '*.md' -print0)
-  echo "probe-expert: ablated $ablate (struck routing row + de-linked inbound refs to [[$base]])" >&2
+  echo "probe-expert: removed $without (struck routing row + stripped inbound refs to [[$base]])" >&2
 elif [[ -n "$prev" ]]; then
-  [[ -e "$expert_sb/$prev" ]] || die "--prev target not in Expert: $prev (a NEW shard has no prior version — use --ablate)"
+  [[ -e "$expert_sb/$prev" ]] || die "--prev target not in Expert: $prev (a NEW shard has no prior version — use --without)"
   if [[ -f "$prev_from" ]]; then
     cp "$prev_from" "$expert_sb/$prev"
     echo "probe-expert: replaced $prev with file $prev_from" >&2

@@ -163,7 +163,7 @@ produces at a plan locus that could plausibly fail, not whether the plan quotes 
   the mechanism: `agents-md/` is eager (always loaded), so its probe pastes the line in;
   `expert/` is lazy (`/expert` routes to shards on demand), so it **invokes the real `/expert`
   skill in a minimal sandbox** via this skill's own `scripts/probe-expert.sh` — testing the
-  routing (`USE WHEN` → which shard opens), not just content. Its baseline is `--ablate` (with/
+  routing (`USE WHEN` → which shard opens), not just content. Its baseline is `--without` (with/
   without) or `--prev … --prev-from <ref|path>` (new-vs-previous *version* of an edited shard).
   `intent/` and `lints/` (input / feedback sensor) grade an artifact against an absolute
   PASS/FAIL bar (a PRD/runner's sufficiency; a lint message read cold as a fix-prompt).
@@ -171,7 +171,7 @@ produces at a plan locus that could plausibly fail, not whether the plan quotes 
   **HEAD** with vs. without the shard and judge the whole plan — the real `/spec-planning`
   invocation, where all levers converge. This skill's own `scripts/plan-in-isolation.sh`
   (under the skill folder, not the project's `scripts/`) does the re-plan the harness's way
-  (it **inspects** the invocation rather than hardcoding `claude -p`), `--ablate <shard>` for
+  (it **inspects** the invocation rather than hardcoding `claude -p`), `--without <shard>` for
   the baseline arm. Judge the *plan* (mainspec + slices), never a re-implementation. 3–5
   cases, spanning work types.
 

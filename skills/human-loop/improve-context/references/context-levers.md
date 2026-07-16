@@ -123,8 +123,8 @@ permanent.
 
 Evals form a **pyramid** whose folder tree mirrors the levers above, all graded against a
 **developer-intent rubric** (never the shipped code — that's circular). **Tier 1** is one
-cheap family per lever: `evals/expert/` and `evals/agents-md/` ablate a shard/line ("does
-the plan honor it, with vs. without?"), `evals/intent/` gates a PRD/runner's sufficiency,
+cheap family per lever: `evals/expert/` and `evals/agents-md/` test a shard/line with vs.
+without it ("does the plan honor it?"), `evals/intent/` gates a PRD/runner's sufficiency,
 `evals/lints/` asks "does this lint message work as a fix-prompt read cold?". **Tier 2** is
 a few `evals/spec-planning/` integration cases — the real `/spec-planning` invocation where
 all levers converge. Committed to the project and run where the human is: the fast feedback

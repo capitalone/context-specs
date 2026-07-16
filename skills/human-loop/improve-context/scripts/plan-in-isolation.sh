@@ -3,15 +3,15 @@
 # with the env's CURRENT context, and capture the plan WITHOUT touching any real branch.
 # The shared engine behind every evals/spec-planning/ case (Tier 2, integration).
 #
-#   Usage: plan-in-isolation.sh <feature> <out-dir> [--ablate <relpath>] [--env-root <dir>]
+#   Usage: plan-in-isolation.sh <feature> <out-dir> [--without <relpath>] [--env-root <dir>]
 #
 #   <feature>          feature slug, e.g. pattern-to-pip. Its prds/<feature>/prd.md is the
 #                      planning input; it may be a merged OR an in-progress feature.
 #   <out-dir>          where to drop the captured plan (created; caller keeps it gitignored)
-#   --ablate <relpath> OPTIONAL. A context path under the worktree to REMOVE before planning
-#                      — the ablation arm. Typically a shard, e.g.
+#   --without <relpath> OPTIONAL. A context path under the worktree to REMOVE before planning
+#                      — the without-shard arm. Typically a shard, e.g.
 #                      `.claude/skills/expert/invariant-timezone-safe-dates.md`. Omit for the
-#                      full-context arm. (Line-level AGENTS.md ablation: pass a pre-edited
+#                      full-context arm. (Line-level AGENTS.md removal: pass a pre-edited
 #                      AGENTS.md as an overlay via the caller; this flag removes whole files.)
 #   --env-root <dir>   the environment repo (default: git toplevel of CWD). Its CURRENT
 #                      working-tree Expert (.claude/skills/expert) is the thing under test.
@@ -31,7 +31,7 @@
 # This script INSPECTS the harness instead of assuming it, so it stays correct as the
 # harness evolves. If you are adapting it, keep that principle.
 #
-# We plan at HEAD: the two eval arms differ only by --ablate, so the delta between them is
+# We plan at HEAD: the two eval arms differ only by --without, so the delta between them is
 # attributable to that context alone. The planning commit lands only in a throwaway worktree
 # that is deleted here — no real branch is touched.
 #
@@ -39,10 +39,10 @@
 # in auto mode is blocked from spawning that.
 set -uo pipefail
 
-feature=""; out_dir=""; ablate=""; env_root=""
+feature=""; out_dir=""; without=""; env_root=""
 while (( $# )); do
   case "$1" in
-    --ablate)   ablate="${2:?--ablate needs a relpath}"; shift 2 ;;
+    --without)   without="${2:?--without needs a relpath}"; shift 2 ;;
     --env-root) env_root="${2:?--env-root needs a dir}"; shift 2 ;;
     -*)         echo "plan-in-isolation: unknown flag $1" >&2; exit 64 ;;
     *)          if [[ -z "$feature" ]]; then feature="$1"; elif [[ -z "$out_dir" ]]; then out_dir="$1";
@@ -50,7 +50,7 @@ while (( $# )); do
   esac
 done
 [[ -n "$feature" && -n "$out_dir" ]] \
-  || { echo "usage: plan-in-isolation.sh <feature> <out-dir> [--ablate <relpath>] [--env-root <dir>]" >&2; exit 64; }
+  || { echo "usage: plan-in-isolation.sh <feature> <out-dir> [--without <relpath>] [--env-root <dir>]" >&2; exit 64; }
 env_root="${env_root:-$(git rev-parse --show-toplevel)}"
 env_root="$(cd "$env_root" && pwd)"
 
@@ -71,7 +71,7 @@ sid="$(uuidgen 2>/dev/null || cat /proc/sys/kernel/random/uuid 2>/dev/null || ec
 cleanup() { git -C "$env_root" worktree remove --force "$wt" >/dev/null 2>&1 || rm -rf "$wt"; }
 trap cleanup EXIT
 
-echo "plan-in-isolation: worktree @ HEAD  (feature=$feature, ablate=${ablate:-none}, session=$sid)" >&2
+echo "plan-in-isolation: worktree @ HEAD  (feature=$feature, without=${without:-none}, session=$sid)" >&2
 git -C "$env_root" worktree add --detach "$wt" HEAD >/dev/null 2>&1 \
   || die "git worktree add failed at HEAD."
 
@@ -81,11 +81,11 @@ rm -rf "$wt/.claude/skills/expert"
 mkdir -p "$wt/.claude/skills"
 cp -R "$env_root/.claude/skills/expert" "$wt/.claude/skills/expert"
 
-# Ablation arm: remove the context path under test before planning.
-if [[ -n "$ablate" ]]; then
-  [[ -e "$wt/$ablate" ]] || die "--ablate target not found in worktree: $ablate"
-  rm -rf "${wt:?}/$ablate"
-  echo "plan-in-isolation: ablated $ablate" >&2
+# Without-shard arm: remove the context path under test before planning.
+if [[ -n "$without" ]]; then
+  [[ -e "$wt/$without" ]] || die "--without target not found in worktree: $without"
+  rm -rf "${wt:?}/$without"
+  echo "plan-in-isolation: removed $without" >&2
 fi
 
 # Re-link the tier-1 skill symlinks so /spec-planning resolves.
