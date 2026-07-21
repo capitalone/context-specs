@@ -8,8 +8,9 @@ probabilistic code and controls the flow all the way to a guaranteed, well-defin
 output.*
 
 Context Specs is that system for coding — **autonomous** and **goal-based**. You
-express intent (your goal); the harness runs on its own; you always get back a pull
-request (your guaranteed output) — either **ready to merge**, or **STUCK with a
+express intent (your goal); the harness plans the feature with **Spec-Driven
+Development** and implements it slice by slice, on its own; you always get back a
+pull request (your guaranteed output) — either **ready to merge**, or **STUCK with a
 diagnosis** of what blocked it.
 
 ## The point isn't one PR — it's the system that produces them
@@ -70,23 +71,51 @@ context-specs start
 ```
 
 From there you live in a three-beat cycle — **express intent, the harness builds, you
-evaluate**:
+evaluate**. The middle beat is SDD, run end to end without you:
 
 ```mermaid
 flowchart LR
-  Intent["/intent\nyou express intent"] --> Build["the harness builds\nplans → PR"]
-  Build --> Eval["/evaluate-pr\nyou understand & merge"]
-  Eval --> Learn["the harness learns\nupdates memory"]
+  Intent["/intent\nyou express intent"] --> Plan["spec-planning"]
+  Plan --> Val["spec-validate"]
+  Val --> Impl["implement slices"]
+  Impl --> PR["PR\nready to merge · STUCK"]
+  PR --> Eval["/evaluate-pr\nyou understand & merge"]
+  Eval --> Learn["/learn\nproposes memory updates"]
   Learn --> Intent
 ```
 
 `context-specs status` shows every project's features and phases; `run` does one
 foreground pass; `logs <env> -f` follows the loop; `doctor` checks the wiring.
 
+## Specs are short-term memory
+
+Most SDD tooling stops at the spec: a human drives the spec, then a human drives the
+implementation. Here the spec is the harness's **short-term memory** — and the harness
+runs it all the way to a PR.
+
+A spec is true *right now*, about *this* feature. `specs/<feature>/mainspec.md` is the
+end state you work backward from; ordered slices under `specs/<feature>/slices/` are
+the path to it, each naming the real files it touches. The agent is fed one slice at a
+time, so its window stays small and the plan can't decay or compact away — after a
+compaction it just re-reads the spec. Once the feature ships, the spec stops steering
+anything and survives only as a record.
+
+Durable knowledge lives elsewhere, in **long-term memory**: the Expert, `AGENTS.md`,
+and lints. The bridge between them is **Reflect** — at the end of each slice, once the
+code is green, the agent writes back only what is genuinely durable. The bar is high;
+most slices reflect nothing. Keeping the two separate is what lets each do its job:
+specs stay lean and disposable, long-term memory stays curated and permanent.
+
+That pairing is the flywheel. [`/learn`](./docs/concepts/long-term-memory.md) runs
+after a feature merges and opens its *own* PR against your memory — you review that
+too — so the next feature is planned by a harness that knows more than it did.
+
 ## Documentation
 
 - **[How Context Specs works](./docs/overview.md)** — the narrative tour, start to
   finish.
+- **[Spec-Driven Development](./docs/concepts/spec-driven-development.md)** — how the
+  harness builds one feature: mainspec, slices, validation, Reflect.
 - **[Core concepts](./docs/README.md#core-concepts)** — harness engineering, context
   engineering, the dispatcher, memory, continuous improvement, the human loop.
 - **[How-to guides](./docs/README.md#how-to-guides)** — set up, run, and improve the
