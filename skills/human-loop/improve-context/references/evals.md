@@ -1,3 +1,54 @@
+## The eval discipline (summary)
+
+Evals live in the project under `evals/`, run where the user is, and form a **pyramid**
+whose folder tree mirrors the project's evaluable levers. **Ground truth is a
+developer-intent rubric, co-authored with the human — never the shipped code** (that's
+circular; the lesson you just added to the Expert is already in the code). The anti-overfit
+rule: reward a shard's **effect**, not its **echo** — a criterion tests the outcome a shard
+produces at a plan locus that could plausibly fail, not whether the plan quotes it.
+
+- **Tier 1 — single-lever checks, cheap, many.** `expert/` and `agents-md/` (feedforward
+  guides) answer a targeted planning question **with vs. without** the shard/line and compare
+  the two answers — so the delta *is* the attribution. The lever's eager-vs-lazy nature picks
+  the mechanism: `agents-md/` is eager (always loaded), so its probe pastes the line in;
+  `expert/` is lazy (`/expert` routes to shards on demand), so it **invokes the real `/expert`
+  skill in a minimal sandbox** via this skill's own `scripts/probe-expert.sh` — testing the
+  routing (`USE WHEN` → which shard opens), not just content. Its baseline is `--without` (with/
+  without) or `--prev … --prev-from <ref|path>` (new-vs-previous *version* of an edited shard).
+  `intent/` and `lints/` (input / feedback sensor) grade an artifact against an absolute
+  PASS/FAIL bar (a PRD/runner's sufficiency; a lint message read cold as a fix-prompt).
+- **Tier 2 — whole-plan checks (`spec-planning/`), integration, FEW.** Re-plan a feature at
+  **HEAD** with vs. without the shard and judge the whole plan — the real `/spec-planning`
+  invocation, where all levers converge. This skill's own `scripts/plan-in-isolation.sh`
+  (under the skill folder, not the project's `scripts/`) does the re-plan the harness's way
+  (it **inspects** the invocation rather than hardcoding `claude -p`), `--without <shard>` for
+  the baseline arm. Judge the *plan* (mainspec + slices), never a re-implementation. 3–5
+  cases, spanning work types.
+
+**If they ask where to start.** Single-lever (Tier-1) checks before whole-plan (Tier-2) ones,
+and among those `expert/` pays back most: long-term memory feeds the spec plan, which shapes
+every future feature, so a shard check tunes the whole system, not one feature. Offer this when
+it's wanted — it's the physics of the pyramid, not a running order to steer them into. Say it in
+plain terms; the human may not have read this skill, so don't lean on "Tier 1 / Tier 2" without
+unpacking them.
+
+**An eval ends in a conversation, not an exit code.** You can't run `run-eval.sh` yourself
+(it spawns `claude -p`); the human runs it and replies `done` (the report's footer tells them
+to). `Read` `<case>/.cache/last-report.md` the moment they do — the verdict line (`HELPED |
+NEUTRAL | HURT`, or `PASS | FAIL`) is content to interpret, never a gate — then recommend the
+next move on the edit they just made: **keep · refine the `USE WHEN` line · delete the shard ·
+consolidate into a sibling · revert**. A **NEUTRAL** is a fork, not a shrug: `Read` the two
+reasoning traces the report names (`~/.claude/projects/*/<id>.jsonl`, resolve by id) to see
+*why* — shard consulted but inert → **lean delete** (redundant memory is noise; keep only if
+it states direction the model wouldn't infer); never routed to → fix the `USE WHEN` line;
+a sibling restated it → consolidate. Flag a marginal verdict as one nondeterministic draw
+before anyone reverts, and treat the human's disagreement with the judge as a cue to tune
+`judge.md` (`references/evals.md` — *The eval ends in a conversation*).
+
+Outer-loop check: the harness's production attempt counters and STUCK rate are the
+ground truth for whether the rubric measures the right thing. If eval scores rise but
+implement attempts don't fall, fix the rubric, not the suite.
+
 # The eval contract
 
 An eval is the load-bearing artifact of continuous improvement: it freezes *"given this
@@ -84,9 +135,9 @@ checkout. The folder tree is **flat by lever**, so it *is* the coverage map — 
     └── <behavior-slug>/{fixture/, judge.md, run-eval.sh}
 ```
 
-The five families map onto the project's **evaluable levers** (`context-levers.md`):
-`AGENTS.md`, the Expert, `/intent`, and lints. (Evals themselves measure the levers, so
-they aren't evaled.) Case names are behavior slugs
+The five families map onto the project's **evaluable levers**: `AGENTS.md` (`agents-md.md`), the
+Expert (`expert.md`), `/intent` (`intent.md`), and lints (`lints.md`). (Evals themselves measure
+the levers, so they aren't evaled.) Case names are behavior slugs
 (`spec-planning-honors-ssr-constraint`), not feature names.
 
 **The codebase lever has no family here, and that's not a gap.** Its improvements are
@@ -252,7 +303,7 @@ the verdict is ambiguous or the human disputes it (skip it when the verdict is o
 # Tier 1 — one lever each
 
 Every Tier-1 case is small, cheap, and probes **one** context lever. The runner shape and
-scoring mode fall out of the lever's role (`context-levers.md`): **feedforward guides**
+scoring mode fall out of the lever's role (the lever map in `SKILL.md`): **feedforward guides**
 (Expert, AGENTS.md) steer the plan *before* the work, so we compare with vs. without (does
 removing this context make the output worse?); **inputs and sensors** (`/intent`, lints) are
 graded as artifacts against an absolute bar.
@@ -628,3 +679,9 @@ case is a vector that shifts behavior.
 counters and STUCK rate are the ground truth: if eval verdicts trend "context helped" over
 time but implement attempts don't fall, the rubric is measuring the wrong thing — fix
 `judge.md`, not the suite.
+
+
+- **Never fabricate an eval that passes trivially.** Its verdict must move with the context
+  it tests, and reward the shard's **effect, not its echo** — a with-and-without case must
+  swing when the shard is added/removed; a gate case reads FAIL before the fix, PASS after — or it
+  proves nothing (`references/evals.md`).

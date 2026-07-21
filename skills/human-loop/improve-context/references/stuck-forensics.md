@@ -1,6 +1,6 @@
 # STUCK forensics: from PR to evidence, and where fixes land
 
-This is the discipline behind route (a). The goal is not to *summarize* every session —
+This is the discipline for reading a STUCK PR. The goal is not to *summarize* every session —
 that's a transcript dump, and it tells you nothing. The goal is to read the few sessions
 that fought, with the five lenses, until you can name which piece of context shaped each
 decision the human cares about — then land the fix where it survives.
@@ -8,7 +8,46 @@ decision the human cares about — then land the fix where it survives.
 > Governing principle: **the sessions are evidence, not the verdict.** You are reading
 > agents reading context. The finding is always about the *context*, never the agent.
 
-## Where session IDs come from (the PR comment, full stop)
+## The flow, end to end
+
+1. `skills/human-loop/improve-context/scripts/resolve-sessions.sh <PR#|feature>` — session
+   IDs → local JSONL trace paths.
+2. Triage from the table: high `Attempt`, non-zero `Exit` — tell the human where you're
+   starting and why, in two lines.
+3. Read the trail with the five lenses (*The five reading lenses*, below), tracing backward
+   to the earliest point where context first led an agent wrong.
+4. Classify each finding *with* the human: **context defect** (fixable) or **inherent
+   difficulty** (name it, move on — C9).
+5. Fix the context on the PR's branch (detached checkout — the harness worktree still
+   holds the branch), then the code, until `./prds/<f>/run-prd-test.sh` passes honestly —
+   never by silencing a check.
+6. Offer to freeze the learning as an eval (C4). The human merges when ready.
+
+**Diagnosis-first**: the context defect gets fixed *before* the code. Find which piece of
+context (AGENTS.md / Expert / spec / PRD) misled the agent or was missing, correct it on the
+PR's branch, then fix the code — the merge carries both into `main`, and `/learn` extends the
+context fix into durable memory.
+
+The same flow works for a converged PR (build-audit: was the trail efficient, did the agents
+fight the context?) and for a `learn/<sha>` memory PR (did `/learn` route facts to the right
+destinations?).
+
+## STUCK anatomy — what the harness hands you
+
+A STUCK is a *finished* state, not a crash: a step hit its retry cap and the dispatcher halted the
+feature **honestly** instead of faking success. Treat it as a report, not a failure.
+
+Caps (defaults, overridable in `.harness/env`): spec-planning 2 · spec-validate 2 ·
+implement-mainspec 3 · local-checks 2 · address-feedback 5.
+
+The STUCK comment on the PR carries three things:
+
+- **The step and its cap** — where the harness gave up.
+- **A session table** — `| Time | Step | Attempt | Session ID | Exit |`, posted deterministically
+  by the dispatcher.
+- **A tail of the failing output.**
+
+### Where session IDs come from (the PR comment, full stop)
 
 The harness posts the session table on the PR **deterministically, from the dispatcher**
 (no LLM in that path): `render_sessions_table` feeds `signal_human_review`,
@@ -20,8 +59,8 @@ gh pr view <pr> --json comments --jq '.comments[].body'
 ```
 
 The table is `| Time | Step | Attempt | Session ID | Exit |`, with the step and session ID
-backtick-wrapped. `scripts/resolve-sessions.sh <PR#|feature>` parses exactly this and emits
-`<session_id>\t<jsonl_path|MISSING>` per row.
+backtick-wrapped. This skill's own `scripts/resolve-sessions.sh <PR#|feature>` parses exactly
+this and emits `<session_id>\t<jsonl_path|MISSING>` per row.
 
 **Do not read the harness repo's `state/<env>/sessions-<f>.tsv`.** It carries an extra `duration_s` column and
 untruncated rows, but the cleanup pass `rm -f`s it on every merged/closed PR — so for a
@@ -30,7 +69,7 @@ TSV is ephemeral working state. (One consequence: `render_sessions_table` does `
 and drops `duration_s`, so from the PR you triage on `Step` / `Attempt` / `Exit`, and a
 trail longer than 20 sessions is truncated — note it to the human if you hit the cap.)
 
-## Locating the trace content
+### Locating the trace content
 
 Session **content** lives in local JSONL, one event per line (user message, tool call,
 assistant response — system prompts are not in the transcript):
@@ -125,8 +164,8 @@ project's memory uses:
 - **A lint** — when the rule is *mechanically checkable*. Add it under `scripts/lints/`,
   wire into `scripts/local-checks.sh`; it must pass against current code before it's
   included. The lint *is* the regression test — don't also write an eval for it.
-- **Eager prose (AGENTS.md)** — only when it clears all five predicates (see
-  `context-levers.md`); root or the nested file the rule is local to.
+- **Eager prose (AGENTS.md)** — only when it clears all five predicates (`agents-md.md`);
+  root or the nested file the rule is local to.
 - **The codebase itself** — when the defect is that the *structure* misled or hid: the agent
   searched for something a name should have told it, or copied the nearest example and the
   nearest example was wrong. **Check this before reaching for a shard.** If the shard you're
