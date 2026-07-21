@@ -92,7 +92,9 @@ it's the path of least resistance for every future agent. The name is what the a
    it to predict what lives in each folder and what may import what. Then diff its answer against
    reality. **Where it guesses wrong, the name is lying.** This is the measurement: harnessability
    is otherwise something you can only feel, and this makes it a diff. It's also faithful —
-   predicting-from-names is exactly what an agent does before opening anything.
+   predicting-from-names is exactly what an agent does before opening anything. (An
+   `evals/codebase/` case is this same measurement *frozen* — run against the repo before and
+   after, so it keeps answering after you've stopped looking. See **What holds a refactor**.)
 2. **Concept-count sweep.** Dispatch subagents across the tree; for each folder they read the
    files and report the **distinct concepts** inside. A folder holding three unrelated purposes
    under one name is a split candidate: *"`src/utils/` holds 11 files spanning auth, date
@@ -126,6 +128,13 @@ refactor:**
   the shard.** A free win — don't manufacture a refactor to justify the finding.
 
 Either way the deletion is real, which is what makes this the highest-value cheap probe you have.
+
+**You can get evidence before deleting, and it already exists.** An `evals/expert/` case runs
+the real `/expert` with and without the shard; a **NEUTRAL** verdict means the shard was
+consulted and changed nothing — exactly the "it's a duplicate" claim you're making, now
+measured instead of asserted (`evals.md` — *The eval ends in a conversation*). No new machinery,
+and it protects against the one bad outcome here: deleting prose that was quietly carrying a
+*why*. Worth it for a shard you're unsure about; skip it when the restatement is obvious.
 
 **Distinguish honestly — most shards near structure are legitimate.** A shard carrying *why* the
 boundary exists, what breaks if you cross it, or where it's heading is doing work structure can't,
@@ -305,15 +314,15 @@ Structure decays (H7), so for each landed refactor, say what keeps it from drift
   must pass against current code before it wires in, so the migration completes first. This
   self-limits scope, which is useful: **you can't take on a migration you can't finish, because
   you won't get your enforcer.**
-- **Not mechanical → name the drift risk out loud** and let the human decide knowingly. *"This
-  will drift back; nothing enforces it"* is a legitimate thing to land, **said**. Don't pretend a
-  refactor is durable when nothing holds it.
-
-**Evals could hold the non-mechanical ones — but not yet.** An eval is a legitimate enforcer in
-principle: a codebase-legibility case that reads worse before a refactor and better after would
-catch drift the way a lint catches import direction. The eval suite doesn't cover codebase
-refactors today (`evals.md` is per-lever over prose artifacts), and building that coverage is out
-of scope. Mention it as the future home; don't promise it and don't build it here.
+- **Not mechanical → an `evals/codebase/` case, or name the drift risk out loud.** The eval is
+  the real answer: a case that asks a fresh agent where a task belongs, run against the repo
+  **before vs. after** your refactor, verdict HELPED. Re-run it later and a repo that drifted
+  back flips it to HURT — that's the enforcer, doing for legibility what a lint does for import
+  direction (`evals.md` — *`codebase/`*). It needs the **pre-refactor ref**, so note the commit
+  *before* you start; recovering it from `git log` afterward is annoying. When even that doesn't
+  fit — the property is real but no scenario discriminates it — *"this will drift back; nothing
+  enforces it"* is a legitimate thing to land, **said**. Don't pretend a refactor is durable when
+  nothing holds it.
 
 ## What a refactor unlocks downstream
 

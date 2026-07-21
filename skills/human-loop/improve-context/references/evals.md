@@ -17,6 +17,9 @@ produces at a plan locus that could plausibly fail, not whether the plan quotes 
   without) or `--prev … --prev-from <ref|path>` (new-vs-previous *version* of an edited shard).
   `intent/` and `lints/` (input / feedback sensor) grade an artifact against an absolute
   PASS/FAIL bar (a PRD/runner's sufficiency; a lint message read cold as a fix-prompt).
+  `codebase/` (the substrate) can't be pasted in *or* removed, so its two arms are the repo
+  **before vs. after** a refactor: `scripts/probe-codebase.sh` asks a localization question
+  against the codebase with the prose levers stripped — the exact inverse of `probe-expert.sh`.
 - **Tier 2 — whole-plan checks (`spec-planning/`), integration, FEW.** Re-plan a feature at
   **HEAD** with vs. without the shard and judge the whole plan — the real `/spec-planning`
   invocation, where all levers converge. This skill's own `scripts/plan-in-isolation.sh`
@@ -100,15 +103,15 @@ Evals form a pyramid, the same shape as unit-vs-integration tests:
        ╱   Invoke /spec-planning the harness's way; judge the whole     ╲
       ╱    plan. Expensive, realistic. FEW (3–5), span work types.       ╲
      ╱───────────────────────────────────────────────────────────────────╲
-    ╱  Tier 1 — one lever each: expert · agents-md · intent · lints.       ╲
-   ╱   Cheap, targeted, MANY. A tiny scenario probes a single context      ╲
-  ╱    lever directly. Where most cases live, and your coverage map.        ╲
+    ╱  Tier 1 — one lever each: expert · agents-md · codebase · intent ·   ╲
+   ╱   lints. Cheap, targeted, MANY. A tiny scenario probes a single       ╲
+  ╱    context lever directly. Where most cases live, and your coverage map.╲
  ╱─────────────────────────────────────────────────────────────────────────╲
 ```
 
 The tier boundary is **single-lever vs. all-levers-integrated.** Tier 1 interrogates one
 lever in isolation (cheap enough to have one per load-bearing shard); Tier 2 runs the real
-`/spec-planning` invocation where all four levers converge into a plan (expensive, so kept
+`/spec-planning` invocation where every lever converges into a plan (expensive, so kept
 few). Tier 2 is also the anti-overfit backstop for Tier 1: a full coherent plan can't win
 by keyword-stuffing the way a single-criterion probe might.
 
@@ -127,6 +130,8 @@ checkout. The folder tree is **flat by lever**, so it *is* the coverage map — 
 │   └── <behavior-slug>/{fixture/, judge.md, run-eval.sh}
 ├── agents-md/           # Tier 1 · feedforward guide · with/without compare
 │   └── <behavior-slug>/{fixture/, judge.md, run-eval.sh}
+├── codebase/            # Tier 1 · substrate · before/after-refactor compare
+│   └── <behavior-slug>/{fixture/, judge.md, run-eval.sh}
 ├── intent/              # Tier 1 · input · absolute gate  (thin — 1–2 to start)
 │   └── <behavior-slug>/{fixture/, judge.md, run-eval.sh}
 ├── lints/               # Tier 1 · feedback sensor · absolute gate
@@ -135,17 +140,21 @@ checkout. The folder tree is **flat by lever**, so it *is* the coverage map — 
     └── <behavior-slug>/{fixture/, judge.md, run-eval.sh}
 ```
 
-The five families map onto the project's **evaluable levers**: `AGENTS.md` (`agents-md.md`), the
-Expert (`expert.md`), `/intent` (`intent.md`), and lints (`lints.md`). (Evals themselves measure
-the levers, so they aren't evaled.) Case names are behavior slugs
+The six families map onto the project's **evaluable levers**: `AGENTS.md` (`agents-md.md`), the
+Expert (`expert.md`), the codebase (`harnessability.md`), `/intent` (`intent.md`), and lints
+(`lints.md`) — plus `spec-planning/`, where they integrate. (Evals themselves measure the levers,
+so they aren't evaled.) Case names are behavior slugs
 (`spec-planning-honors-ssr-constraint`), not feature names.
 
-**The codebase lever has no family here, and that's not a gap.** Its improvements are
-mechanically checkable by construction — canonical placement, naming, import direction — so
-they ratchet through **lints**, and the rule below still holds: the lint *is* the regression
-test. Where a legibility property genuinely resists a lint ("does this name convey its
-purpose?"), the skill names the drift risk to the human rather than faking coverage
-(`harnessability.md`).
+**`codebase/` covers only what a lint can't reach.** Most harnessability improvements are
+mechanically checkable by construction — canonical placement, naming, import direction — and
+those still ratchet through **lints**, which stay the preferred rung: the lint *is* the
+regression test, it can't be violated, and it costs nothing per session. But the expensive
+refactors (pattern singularity, boundary visibility, change locality) leave a residue no lint
+can hold: *is the first example an agent finds the one you'd want copied?* That residue used to
+get "name the drift risk out loud and hope" (`harnessability.md`, H7). `codebase/` is where it
+gets an enforcer instead — one case per landed refactor, which flips to HURT if the repo drifts
+back. Reach for the lint first; write a `codebase/` case for what's left over.
 
 ### Scaffolding `evals/` on first use
 
@@ -163,8 +172,8 @@ behave?"); `prds/<f>/run-prd-test.sh` tests the **product** ("does the feature w
 Keep them separate.
 
 Two tiers, one folder per project-owned lever:
-- **Tier 1 — single-lever checks (cheap, many)** — `expert/`, `agents-md/`, `intent/`,
-  `lints/`: each probes a single context lever in isolation.
+- **Tier 1 — single-lever checks (cheap, many)** — `expert/`, `agents-md/`, `codebase/`,
+  `intent/`, `lints/`: each probes a single context lever in isolation.
 - **Tier 2 — whole-plan checks (expensive, few)** — `spec-planning/`: the real
   `/spec-planning` invocation, where all levers converge into a plan.
 
@@ -188,7 +197,7 @@ report and discuss it. A new eval's verdict must MOVE with the context it tests.
 set -uo pipefail
 here="$(cd "$(dirname "$0")" && pwd)"
 tier1_only=0; [[ "${1:-}" == "--tier1" ]] && tier1_only=1
-families=(expert agents-md intent lints)
+families=(expert agents-md codebase intent lints)
 (( tier1_only )) || families+=(spec-planning)
 broke=0 ran=0
 for fam in "${families[@]}"; do
@@ -220,7 +229,7 @@ contract is a report, not an exit code:
   gate family — is what Claude reads and the human reacts to. It is *not* the exit code.
 - **A `claude -p` arm names its session id in the report, and the report ends with a
   "reply `done`" footer.** For the families that *invoke* Claude to produce an arm (`expert/`,
-  `spec-planning/`), print each arm's `--session-id` so the skill can resolve the trace
+  `codebase/`, `spec-planning/`), print each arm's `--session-id` so the skill can resolve the trace
   (`~/.claude/projects/*/<id>.jsonl`) and read *why* an arm answered as it did — the tie-breaker
   for a NEUTRAL. The footer tells the human to return to the session and reply `done`, closing
   the human→session loop instead of leaving the report to be discovered.
@@ -306,7 +315,8 @@ Every Tier-1 case is small, cheap, and probes **one** context lever. The runner 
 scoring mode fall out of the lever's role (the lever map in `SKILL.md`): **feedforward guides**
 (Expert, AGENTS.md) steer the plan *before* the work, so we compare with vs. without (does
 removing this context make the output worse?); **inputs and sensors** (`/intent`, lints) are
-graded as artifacts against an absolute bar.
+graded as artifacts against an absolute bar; the **substrate** (the codebase) is neither — you
+can't paste it in or take it away, so it's compared **across two points in its own history**.
 
 Among the guides, the lever's **eager-vs-lazy** nature picks the mechanism. `AGENTS.md` is
 *eager* — always loaded — so pasting the line into the probe is faithful. The Expert is
@@ -423,6 +433,118 @@ Same shape as `expert/`, but the lever is a line (or block) of `AGENTS.md`, whic
 *eager* — always loaded — so feeding it to the probe is faithful. Arm A includes the line;
 arm B strips it. The criterion tests whether the plan *obeys* the rule, not whether it
 quotes it. (`fixture/` holds the scenario + the AGENTS.md excerpt with the line marked.)
+
+## `codebase/` — does the structure answer the localization question? (before vs. after)
+
+The codebase is the highest-volume context any agent reads and the only one that **cannot
+lie** (`harnessability.md`). This family freezes the question that lever exists to improve:
+*given a real task, can a fresh agent cheaply and reliably discover **where the change belongs**
+and **what precedent to follow**?* A refactor that improves legibility should make that answer
+land faster and on the right neighbor; a repo that drifts back should make it degrade.
+
+**Two arms = two points in the repo's history.** There's no "without the codebase," so the
+baseline is the pre-refactor commit: arm A is the working tree, arm B is `--at <before-ref>`.
+Same version-vs-version shape as `expert/`'s `--prev-from`, and the same verdict vocabulary
+(`HELPED | NEUTRAL | HURT`). One consequence to plan for: **you need the pre-refactor ref**, so
+note it *before* the migration lands (or recover it later from `git log`).
+
+**The probe strips the prose levers, and that's the whole design.**
+`scripts/probe-codebase.sh` builds a sandbox holding the codebase at the chosen ref with the
+Expert, every `AGENTS.md`, and every `CLAUDE.md` **removed**, then runs one bare `claude -p`
+(no slash command) that must answer from names, structure, and neighbors alone. It is the exact
+inverse of `probe-expert.sh`:
+
+| engine | sandbox holds | isolates |
+|---|---|---|
+| `probe-expert.sh` | the Expert, **no codebase** | prose |
+| `probe-codebase.sh` | the codebase, **no prose** | structure |
+
+Each isolates one lever by deleting the other. The strip is not fastidiousness — it's **H2**:
+a shard that describes structure exists to *compensate* for structure, so leaving it in lets
+prose carry the answer the folder name should have carried, and the very defect you're
+measuring reads as NEUTRAL.
+
+- **`fixture/`** — `scenario.md` (a real task, phrased as work to be done, not as a quiz about
+  the tree) and `before-ref` (the pre-refactor git ref for arm B).
+- **The criterion — effect, not echo, sharpened for this family.** Grade **where the answer
+  lands and what it proposes to copy**, never whether it mentions the new folder name. The
+  sharpest available criterion is the **nearest-neighbor trap** (`harnessability.md`, option 4):
+  an answer that finds the right location but cites the deprecated-but-canonical-looking
+  exemplar **fails** — that's the failure the refactor was for. Secondary signals worth a
+  criterion: how much of the tree it had to open before committing, and whether the constraints
+  it inferred are real.
+- **Write the should-not-fire negative.** A scenario in an area the refactor didn't touch must
+  come out NEUTRAL. Without it you're measuring "did the repo change" rather than "did it get
+  more legible."
+- **Faithfulness note:** stripping the prose is what buys clean attribution, and it costs
+  realism — in production the agent *does* have the Expert. Whether the structure still carries
+  the day with every other lever competing is the Tier-2 question.
+
+Skeleton `run-eval.sh` (same shape as `expert/` — cached arms, blind order-swapped judge):
+
+```bash
+#!/usr/bin/env bash
+# Ask one localization question against the codebase ALONE (prose levers stripped), arm A at
+# the working tree vs arm B at the pre-refactor ref, and judge the two answers blind. Signal =
+# the VERDICT line; exit code is operational only. Run from a human shell (spawns `claude -p`).
+#   REFRESH=1 bash run-eval.sh   # regenerate both arms (else cached)
+set -uo pipefail
+here="$(cd "$(dirname "$0")" && pwd)"
+root="$(git rev-parse --show-toplevel)"
+probe="$root/.claude/skills/improve-context/scripts/probe-codebase.sh"
+scenario="$here/fixture/scenario.md"
+before="$(cat "$here/fixture/before-ref")"        # pre-refactor git ref
+mkdir -p "$here/.cache"
+
+run_arm() {  # $1 = cache subdir; rest = probe flags
+  local out="$here/.cache/$1"; shift
+  [[ -s "$out/answer.txt" && "${REFRESH:-0}" != "1" ]] && return 0
+  bash "$probe" "$scenario" "$out" "$@" >/dev/null || { echo "arm $1 failed to run"; exit 1; }
+}
+run_arm A                       # arm A: working tree (after the refactor)
+run_arm B --at "$before"        # arm B: the repo before it
+A="$(cat "$here/.cache/A/answer.txt")"; B="$(cat "$here/.cache/B/answer.txt")"
+sidA="$(cat "$here/.cache/A/session-id")"; sidB="$(cat "$here/.cache/B/session-id")"
+
+judge() {  # $1,$2 = the two answers in presentation order
+  claude -p --model claude-haiku-4-5 <<PROMPT | grep -oE 'WINNER:[[:space:]]*(A|B|TIE)' | grep -oE '(A|B|TIE)' | tail -1
+$(cat "$here/judge.md")
+Two answers to the same task, labeled A and B (order randomized; don't assume which is which).
+Each names where the change belongs, what precedent it would copy, and what it inferred.
+===== A =====
+$1
+===== B =====
+$2
+Critique both against the criterion — judge WHERE each landed and WHAT it would imitate, not
+the words used — THEN end with exactly one line: "WINNER: A", "WINNER: B", or "WINNER: TIE".
+PROMPT
+}
+w1="$(judge "$A" "$B")"; w2="$(judge "$B" "$A")"     # order-swapped: after-as-A, then after-as-B
+[[ -n "$w1" && -n "$w2" ]] || { echo "judge emitted no WINNER line"; exit 1; }
+case "$w1" in A) r1=after;; B) r1=before;; *) r1=tie;; esac
+case "$w2" in A) r2=before;; B) r2=after;; *) r2=tie;; esac
+case "$r1:$r2" in
+  after:after)   verdict="HELPED";;                  # the refactor made the repo more legible
+  before:before) verdict="HURT";;                    # it made it worse — or the repo drifted back
+  *)             verdict="NEUTRAL";;                 # position-bias disagreement or a real tie
+esac
+
+{ echo "VERDICT: $verdict   (arm B = $before)"
+  echo "reasoning traces — arm A (after): $sidA   arm B (before): $sidB"
+  echo; echo "===== ARM A (working tree) ====="; echo "$A"
+  echo; echo "===== ARM B (before the refactor) ====="; echo "$B"
+  echo; echo "-----"
+  echo "Above is how a fresh agent localizes this task, before and after the refactor. To"
+  echo "decide what to do, return to the Claude session that wrote this eval and reply 'done'"
+  echo "— it will read this report AND the traces above, then help you choose the next move."
+} | tee "$here/.cache/last-report.md"
+```
+
+**Reading a verdict here.** HELPED is the refactor paying out — keep the case; it now guards
+against drift. NEUTRAL usually means the scenario didn't touch the refactored surface (fix the
+scenario, not the repo) — the traces tell you which files each arm opened, so you can see
+whether it ever went near it. HURT on a *fresh* refactor means it made things less legible;
+HURT on an *old, passing* case is the alarm this family exists for — the structure drifted back.
 
 ## `intent/` — is the PRD/runner a sufficient, right-reason spec? (absolute gate)
 
@@ -629,6 +751,9 @@ An eval is the mirror: **its verdict must move when the context moves.**
   verdict favors the with-shard arm. You get the red-before/green-after for free. If you
   *can't* make the verdict move by adding/removing the shard, you haven't isolated the
   intent yet — go back to the scenario and the criterion.
+- For **`codebase/`** it's the same structure with history supplying the baseline: arm B *is*
+  the red, arm A the green. A NEUTRAL here almost always means the scenario never reached the
+  refactored surface — the fix is the scenario, not the repo.
 - For a **gate family** (`intent/`, `lints/`) the verdict must read FAIL against the weak
   artifact/message and PASS once it's fixed.
 
@@ -651,6 +776,10 @@ Coverage is a **taxonomy of intents, not a count of features.** Three sources fe
 3. **Real rejections and STUCKs.** A plan the developer rewrote, or a genuine STUCK
    diagnosis that landed on "context gap" — each encodes an intent violation. An *optional*
    seed now, not the mechanism.
+4. **A landed harnessability refactor.** Every non-mechanical refactor from
+   `harnessability.md` — a consolidated pattern, a real boundary, a colocated domain — is a
+   claim that the repo got easier to navigate → a candidate `codebase/` case. Capture the
+   pre-refactor ref *at the time*; it's the baseline arm, and it's annoying to reconstruct.
 
 Always pair a should-fire case with a **should-not-fire** negative where the intent is out
 of scope — one-sided evals create one-sided optimization (a shard that "wins by always
@@ -663,6 +792,8 @@ firing").
   near-duplicate.
 - The fix is a **lint** (mechanically checkable). The lint *is* the regression test for the
   rule — an `evals/lints/` case tests the lint's *message quality*, a different question.
+  This governs `codebase/` too: if a lint can hold the refactor, land the lint and stop.
+  A `codebase/` case is for the residue a lint structurally can't reach, not a second belt.
 - The criterion fails the **task-writability test** — two engineers couldn't agree on the
   verdict from the plan alone. Sharpen it or drop it.
 
