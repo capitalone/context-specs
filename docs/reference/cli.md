@@ -1,9 +1,14 @@
 # Reference: the `context-specs` CLI
 
-`context-specs` is the deterministic half of the harness — the CLI that registers
-environments, symlinks the canonical skills into them, and supervises the
-dispatcher loops. It contains no LLM; it only schedules
+`context-specs` is the deterministic half of the harness — the CLI that scaffolds a
+harness, registers environments, symlinks the canonical skills into them, and
+supervises the dispatcher loops. It contains no LLM; it only schedules
 [the dispatcher](../concepts/the-dispatcher.md) (`scripts/poll-and-dispatch.sh`).
+
+It is installed globally (`npm i -g context-specs`) and holds no state. The harness
+it acts on is resolved per invocation: `CONTEXT_SPECS_HOME` if set, otherwise by
+walking up from the current directory for `.context-specs/manifest.json`. Outside a
+harness, every command except `init` errors rather than guessing.
 
 ```
 Usage: context-specs <command> [args]
@@ -15,8 +20,9 @@ Run `context-specs --help` for the built-in summary.
 
 | Command | Description |
 |---|---|
-| `init [name]` | Create (or adopt) a harness repo from the context-specs template. See [Create a harness](../how-to/create-a-harness.md). |
+| `init [name]` | Scaffold a harness repo (in `name`, or the current directory) and vendor the canonical skills, subagents and dispatchers into it. It becomes your own git repo — no `upstream`, no fork. See [Create a harness](../how-to/create-a-harness.md). |
 | `add <path> [--name n]` | Register an environment repo: symlink skills, write `.gitignore` entries, add it to `environments.toml`. Then run `/env-init` inside it. See [Add an environment](../how-to/add-an-environment.md). |
+| `update [--force]` | Re-vendor from the installed package version, 3-way merging your local edits against it. Writes `.context-specs/update-report.md` and hands off to `/update-harness`. Refuses on a dirty tree or a live supervisor. See [Update a harness](../how-to/update-a-harness.md). |
 | `remove <name>` | Unregister an environment (leaves its files and state in place). |
 | `link <path>` | (Re-)create the skill/agent symlinks in a repo or worktree. Idempotent; called automatically by `bootstrap-worktree.sh`. |
 

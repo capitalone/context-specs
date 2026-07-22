@@ -26,8 +26,13 @@
 
 set -euo pipefail
 
-CONTEXT_SPECS_HOME="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+# Prefer what we were told (the supervisor exports it), fall back to our own
+# location — this script is vendored INTO the harness, so that is still correct
+# when a human runs it by hand. See poll-and-dispatch.sh for why this matters.
+CONTEXT_SPECS_HOME="${CONTEXT_SPECS_HOME:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
 export CONTEXT_SPECS_HOME
+[[ -f "$CONTEXT_SPECS_HOME/.context-specs/manifest.json" ]] || {
+  echo "learn-dispatch: CONTEXT_SPECS_HOME=$CONTEXT_SPECS_HOME is not a harness" >&2; exit 1; }
 ENV_PATH="$(cd "${1:?usage: learn-dispatch.sh <env-path> [env-name]}" && pwd)"
 ENV_NAME="${2:-$(basename "$ENV_PATH")}"
 STATE_DIR="${STATE_DIR:-$CONTEXT_SPECS_HOME/state/$ENV_NAME}"
@@ -147,7 +152,9 @@ if [[ ! -d "$LEARN_WT" ]]; then
 fi
 # The worktree is persistent but the tier-1 skill set is not frozen: re-link on
 # every run so /learn always sees the current skills (idempotent, fast).
-"$CONTEXT_SPECS_HOME/bin/context-specs" link "$LEARN_WT" >/dev/null 2>&1 || true
+context-specs link "$LEARN_WT" >/dev/null 2>&1 || true
+[[ -e "$LEARN_WT/.claude/skills/learn/SKILL.md" ]] \
+  || echo "warn: tier-1 skills missing in $LEARN_WT after link — /learn will run context-less" >&2
 # Per-run wipe (-fd keeps node_modules & bootstrapped deps, like the dispatcher's
 # per-feature wipe), then put it on the learn/<to> branch off the clean main.
 git -C "$LEARN_WT" checkout --quiet -f --detach origin/main

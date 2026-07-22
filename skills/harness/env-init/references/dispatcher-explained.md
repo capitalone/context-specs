@@ -129,8 +129,9 @@ Earlier revisions installed the dispatcher *inside* each project and needed a
 wrapper (`harness-tick.sh`) to resync it every tick without overwriting its own
 running file. The two-tier split dissolves all of that: the dispatcher lives in
 the harness repo and never operates on the repo containing its own bytes.
-Updating it is ordinary tool hygiene — `git pull upstream` in the harness repo
-(or `context-specs` updates), applied between ticks. Feature **pipeline** skills
+Updating it is ordinary tool hygiene — `npm i -g context-specs@latest` followed by
+`context-specs update` in the harness repo, applied between ticks (update refuses
+while a supervisor is running, precisely because it rewrites `scripts/`). Feature **pipeline** skills
 never needed a sync at all: they run inside per-feature worktrees that branch
 from the PRD branch, so new features pick up skill updates on their own.
 

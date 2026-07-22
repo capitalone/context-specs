@@ -12,3 +12,4 @@ __pycache__/
 /state/
 /environments.toml
 node_modules/
+test/

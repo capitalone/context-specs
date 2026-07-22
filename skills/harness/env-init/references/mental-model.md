@@ -16,7 +16,8 @@ or STUCK with a diagnosis**.
 
 ```
 HARNESS REPO (tier 1)              one repo, N environments. Project-agnostic:
-  bin/context-specs                the CLI (registry, symlinks, supervisor)
+                                   (the CLI is installed globally via npm; the
+                                    harness holds only vendored content + state)
   scripts/poll-and-dispatch.sh     the build-loop dispatcher
   scripts/learn-dispatch.sh        the memory-loop dispatcher
   skills/                          the canonical skills (symlinked into envs)

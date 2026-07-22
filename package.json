@@ -1,14 +1,38 @@
 {
   "name": "context-specs",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Harness engineering in practice: a deterministic CLI + dispatcher that drives probabilistic coding agents from PRD to a guaranteed output — a PR that is ready to merge or STUCK with a diagnosis.",
   "license": "Apache-2.0",
+  "keywords": [
+    "claude-code",
+    "agents",
+    "harness",
+    "context-engineering",
+    "spec-driven-development"
+  ],
   "bin": {
     "context-specs": "bin/context-specs"
+  },
+  "files": [
+    "bin/",
+    "lib/",
+    "scripts/",
+    "skills/",
+    "subagents/",
+    "environments.example.toml",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "test": "bash test/run.sh"
   },
   "engines": {
     "node": ">=18"
   },
+  "os": [
+    "linux",
+    "darwin"
+  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/capitalone/context-specs.git"

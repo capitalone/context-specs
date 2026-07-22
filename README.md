@@ -53,8 +53,9 @@ short.
 ## Quickstart
 
 ```bash
-# 1 · Create your harness (one repo that drives all your projects)
-npx context-specs init my-harness
+# 1 · Create your harness (one repo that drives all your projects — and it's yours)
+npm i -g context-specs
+context-specs init my-harness
 cd my-harness
 
 # 2 · Register a project as an environment
@@ -86,6 +87,25 @@ flowchart LR
 
 `context-specs status` shows every project's features and phases; `run` does one
 foreground pass; `logs <env> -f` follows the loop; `doctor` checks the wiring.
+
+## Your harness, upgraded without losing your edits
+
+`init` **vendors** the skills, subagents and dispatchers into your own git repo —
+no fork, no `upstream` remote. Editing them is the point: that is how the harness
+gets better at *your* projects.
+
+So upgrades have to merge, not overwrite:
+
+```bash
+npm i -g context-specs@latest
+context-specs update      # 3-way merges the release against your edits
+> /update-harness         # resolves what a merge tool can't judge
+```
+
+Most files resolve mechanically. What is left over — genuine conflicts, and prose
+that merged cleanly but may no longer *mean* one thing — goes to a skill that
+reconstructs why your edit exists from your own git history and recommends a call.
+See [Update a harness](./docs/how-to/update-a-harness.md).
 
 ## Specs are short-term memory
 

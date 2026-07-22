@@ -19,14 +19,16 @@ skills, or every headless `claude -p` step runs skill-less.
 ## The deterministic header (do not modify)
 
 ```bash
-"${CONTEXT_SPECS_HOME:?...}/bin/context-specs" link "$WT"
+: "${CONTEXT_SPECS_HOME:?...}"
+context-specs link "$WT"
 ```
 
-Re-creates the skill/agent symlinks in the new worktree. `CONTEXT_SPECS_HOME`
-is exported by the dispatcher (which derives it from its own location), so
-nothing machine-specific is committed; a human running the script by hand
-exports it to their harness repo path. `link` is idempotent and fast — safe on
-every invocation.
+Re-creates the skill/agent symlinks in the new worktree. The `context-specs` CLI is
+installed globally (npm), and `CONTEXT_SPECS_HOME` tells it *which* harness to link
+from — the dispatcher exports it, so nothing machine-specific is committed; a human
+running the script by hand exports their harness repo path. The guard line fails
+loudly rather than letting the CLI walk up from the worktree and find no harness.
+`link` is idempotent and fast — safe on every invocation.
 
 ## Callers
 

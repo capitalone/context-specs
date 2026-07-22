@@ -89,13 +89,16 @@ if [[ -n "$without" ]]; then
 fi
 
 # Re-link the tier-1 skill symlinks so /spec-planning resolves.
-if command -v context-specs >/dev/null 2>&1; then
-  context-specs link "$wt" >/dev/null 2>&1 || die "context-specs link failed."
-elif [[ -n "${CONTEXT_SPECS_HOME:-}" && -x "$CONTEXT_SPECS_HOME/bin/context-specs" ]]; then
-  "$CONTEXT_SPECS_HOME/bin/context-specs" link "$wt" >/dev/null 2>&1 || die "context-specs link failed."
+# CONTEXT_SPECS_HOME first, deliberately: the CLI is installed globally, so
+# `command -v` succeeds anywhere — but our cwd is inside a WORKTREE, where the
+# CLI's walk-up-from-cwd finds no harness and it exits. The env var is the only
+# thing that tells it which harness to link from.
+if [[ -n "${CONTEXT_SPECS_HOME:-}" ]]; then
+  CONTEXT_SPECS_HOME="$CONTEXT_SPECS_HOME" context-specs link "$wt" >/dev/null 2>&1 \
+    || die "context-specs link failed."
 else
-  die "can't re-link skills: 'context-specs' not on PATH and CONTEXT_SPECS_HOME unset.
-   Export CONTEXT_SPECS_HOME=<harness repo> or put context-specs on PATH."
+  die "can't re-link skills: CONTEXT_SPECS_HOME unset.
+   Export CONTEXT_SPECS_HOME=<path to your harness repo> and re-run."
 fi
 [[ -e "$wt/.claude/skills/spec-planning/SKILL.md" ]] \
   || die "spec-planning skill not linked into the worktree — /spec-planning would 404."

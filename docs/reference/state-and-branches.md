@@ -41,9 +41,10 @@ Following the [two-tier architecture](../concepts/two-tier-architecture.md):
 ### Harness repo (tier 1)
 
 ```
-bin/context-specs        the CLI
 scripts/                 the dispatchers (poll-and-dispatch.sh, learn-dispatch.sh, harness-lib.sh)
 skills/                  canonical skills (symlinked into environments)
+subagents/               canonical subagents
+.context-specs/          manifest.json (vendored version + file list) + base/ (merge ancestor)
 state/<env>/             per-environment runtime state (logs, locks, supervisor bookkeeping)
 environments.toml        the registry of registered environments
 ```

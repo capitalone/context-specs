@@ -56,6 +56,8 @@ Task-oriented steps for getting things done.
 - **[Evaluate a PR](./how-to/evaluate-a-pr.md)** — evaluate *what* was built.
 - **[Improve your project's context](./how-to/improve-context.md)** — the concierge
   for STUCKs, memory, lints, and evals.
+- **[Update a harness](./how-to/update-a-harness.md)** — pull a new release into
+  your harness, 3-way merging it against your own edits.
 
 ## Reference
 

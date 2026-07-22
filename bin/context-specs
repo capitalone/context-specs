@@ -2,19 +2,28 @@
 'use strict';
 // context-specs — the deterministic half of the harness.
 //
-// Tier 1 (harness repo) owned. Everything here is plain code: registering
+// Everything here is plain code: scaffolding a harness, registering
 // environments, symlinking the canonical skills into them, and supervising the
-// dispatcher loops. The probabilistic half (project-specific setup) lives in
-// the /env-init skill, which this CLI hands off to after `add`.
+// dispatcher loops. The probabilistic half is handed off to skills — /env-init
+// after `add`, /update-harness after `update`.
+//
+// This CLI is installed globally and is stateless. The harness it operates on
+// is the user's own repo, found via CONTEXT_SPECS_HOME or a walk up from cwd
+// (lib/paths.js).
 
 const HELP = `context-specs — set up and run the coding harness across your environments
 
 Usage: context-specs <command> [args]
 
 Setup
-  init [name]            Create (or adopt) a harness repo from the context-specs template
+  init [name]            Scaffold a harness repo (in [name], or here) and vendor the
+                         canonical skills, subagents and dispatchers into it. It is
+                         YOUR repo — edit the skills; update merges around you.
   add <path> [--name n]  Register an environment repo: symlink skills, write .gitignore
                          entries, add it to environments.toml. Then run /env-init inside it.
+  update [--force]       Re-vendor from the installed package version, 3-way merging
+                         your local edits. Writes a report and hands off to
+                         /update-harness for anything needing a human decision.
   remove <name>          Unregister an environment (leaves its files and state in place)
   link <path>            (Re-)create the skill/agent symlinks in a repo or worktree.
                          Idempotent; called automatically by bootstrap-worktree.sh.
@@ -35,6 +44,7 @@ supervisor re-invokes immediately until the environment is idle (exit 0).
 const commands = {
   init: () => require('../lib/init'),
   add: () => require('../lib/add'),
+  update: () => require('../lib/update'),
   remove: () => require('../lib/remove'),
   link: () => require('../lib/link').cli,
   start: () => require('../lib/supervisor').start,

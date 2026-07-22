@@ -6,11 +6,15 @@ Context Specs is not something you install into a project. It is its own repo �
 
 ```
 HARNESS REPO (tier 1 — yours, one)        ENVIRONMENT REPOS (tier 2 — your projects, many)
-  bin/context-specs   the CLI               AGENTS.md                the eager contract
-  scripts/            the dispatchers        .claude/skills/intent/   project-owned /intent
-  skills/             canonical skills       .claude/skills/expert/   long-term memory
+  scripts/            the dispatchers        AGENTS.md                the eager contract
+  skills/             canonical skills       .claude/skills/intent/   project-owned /intent
+  subagents/          canonical subagents    .claude/skills/expert/   long-term memory
   state/<env>/        runtime state          scripts/                 bootstrap + local checks
-                                             .harness/env             this env's dials
+  .context-specs/     vendoring manifest     .harness/env             this env's dials
+                      + merge base
+
+  (the `context-specs` CLI itself is installed globally via npm — it holds no
+   state and is not part of either repo)
 ```
 
 You maintain **one** harness repo. It drives **many** environments — so working on

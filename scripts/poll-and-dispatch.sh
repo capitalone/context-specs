@@ -23,8 +23,14 @@
 
 set -euo pipefail
 
-CONTEXT_SPECS_HOME="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+# Prefer what we were told (the supervisor exports it), fall back to our own
+# location — this script is vendored INTO the harness, so that is still correct
+# when a human runs it by hand. Never let node and bash disagree: a split root
+# means state/ splits, and the tick.lock flock below stops serializing anything.
+CONTEXT_SPECS_HOME="${CONTEXT_SPECS_HOME:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
 export CONTEXT_SPECS_HOME                 # bootstrap-worktree.sh's link header consumes this
+[[ -f "$CONTEXT_SPECS_HOME/.context-specs/manifest.json" ]] || {
+  echo "poll-and-dispatch: CONTEXT_SPECS_HOME=$CONTEXT_SPECS_HOME is not a harness" >&2; exit 1; }
 ENV_PATH="$(cd "${1:?usage: poll-and-dispatch.sh <env-path> [env-name]}" && pwd)"
 ENV_NAME="${2:-$(basename "$ENV_PATH")}"
 STATE_DIR="${STATE_DIR:-$CONTEXT_SPECS_HOME/state/$ENV_NAME}"
@@ -281,7 +287,11 @@ for feature in ${in_flight[@]+"${in_flight[@]}"}; do
   # before env-init merged), `git clean -fd` just deleted them — and bootstrap
   # only runs at worktree creation. Idempotent and cheap; never let a skill run
   # skill-less.
-  "$CONTEXT_SPECS_HOME/bin/context-specs" link "$wt" >/dev/null 2>&1 || true
+  context-specs link "$wt" >/dev/null 2>&1 || true
+  # A link failure must not kill the tick, but it must not be silent either: a
+  # skill-less worktree reads as a model-quality problem, not a wiring one.
+  [[ -e "$wt/.claude/skills/spec-planning/SKILL.md" ]] \
+    || echo "warn: tier-1 skills missing in $wt after link — skills will run context-less" >&2
 
   # State machine: walk forward by exactly one step. Sentinel files gate each
   # transition. Every step has a bounded retry; at cap, signal_stuck posts to the

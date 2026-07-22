@@ -8,7 +8,8 @@ skills are its probabilistic half.
 
 | Where | Piece | Does |
 |---|---|---|
-| **CLI** (`bin/context-specs`) | `init` / `add` / `link` / `remove` | Create the harness repo; register environments; symlink skills |
+| **CLI** (global npm install) | `init` / `add` / `link` / `remove` | Scaffold + vendor the harness repo; register environments; symlink skills |
+| | `update` | Re-vendor a new release, 3-way merged against your edits; hands off to `/update-harness` |
 | | `start` / `stop` / `run` | Supervise the loops (drain-on-advance) / one foreground pass |
 | | `status` / `logs` / `doctor` | Observe every environment; check the wiring |
 | **Dispatchers** (`scripts/`) | `poll-and-dispatch.sh` | The build loop: PRD → PR, one deterministic step per tick |
@@ -48,6 +49,7 @@ See [Long-term memory](../concepts/long-term-memory.md).
 | [`/intent`](../../skills/human-loop/intent/SKILL.md) | Idea → PRD + runnable definition of done (project-owned) |
 | [`/evaluate-pr`](../../skills/human-loop/evaluate-pr/SKILL.md) | Evaluate the change; build understanding |
 | [`/improve-context`](../../skills/human-loop/improve-context/SKILL.md) | Concierge for context improvement: STUCK forensics, memory/lint tuning, evals |
+| [`/update-harness`](../../skills/human-loop/update-harness/SKILL.md) | Resolve a `context-specs update`: keep / take / merge / customize, with consequences |
 
 See [The human loop](../concepts/the-human-loop.md).
 
