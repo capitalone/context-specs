@@ -67,8 +67,7 @@ cd ~/code/myapp && claude
 
 # 4 · Describe a feature, then walk away
 > /intent            # idea → PRD + runnable definition of done
-# then, back in your harness repo:
-context-specs start
+context-specs start  # right here in the project — the environment is implied
 ```
 
 From there you live in a three-beat cycle — **express intent, the harness builds, you

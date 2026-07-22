@@ -33,8 +33,12 @@ Run
   stop [name|--all]      Stop the supervisor
   run [name] [--learn]   One foreground tick, drained to idle. No daemon.
   status [--fetch]       One-shot table: every environment's features and phases
-  logs <name> [-f] [--learn|--supervisor]   Show (or follow) an environment's logs
+  logs [name] [-f] [--learn|--supervisor]   Show (or follow) an environment's logs
   doctor                 Check the harness, the registry, and every environment
+
+Run start/stop/run/logs from INSIDE an environment repo and the name is implied —
+that environment is the target. From the harness, name one (or --all, which
+start/stop accept) unless you have only one registered.
 
 The dispatcher itself is deterministic bash (scripts/poll-and-dispatch.sh);
 this CLI only schedules it. Exit 10 from a tick means "work advanced" and the

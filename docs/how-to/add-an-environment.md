@@ -17,6 +17,11 @@ From inside your harness repo:
 context-specs add ~/code/myapp            # or:  add ~/code/myapp --name myapp
 ```
 
+`add` is the one command that genuinely requires the harness. Everything else —
+`start`, `stop`, `run`, `logs` — can be run from the project itself, because a
+*registered* project points back at its harness. A project you haven't added yet has
+no such pointer, which is exactly the gap `add` closes.
+
 `add` does three project-agnostic things:
 
 1. **Symlinks the canonical skills** from the harness repo into the project's

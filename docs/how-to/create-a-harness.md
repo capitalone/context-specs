@@ -41,11 +41,15 @@ harness to act on at each invocation:
 
 1. `CONTEXT_SPECS_HOME`, if set — the dispatchers export this when they call back
    into the CLI.
-2. Otherwise it walks up from your current directory looking for
-   `.context-specs/manifest.json`.
+2. Otherwise it walks up from your current directory, looking for either a harness
+   (`.context-specs/manifest.json`) **or a registered environment repo**, which
+   points back at its harness through the skill symlinks `add` created.
+3. Otherwise it errors rather than guessing.
 
-So run harness commands from inside the harness (at any depth), or set
-`CONTEXT_SPECS_HOME`. Outside a harness the CLI errors rather than guessing.
+So you can run harness commands from inside the harness *or* from any project you
+have registered — which is where you will be most of the time. Tier 2's second half
+depends on `context-specs add` having run for that project; until then, only the
+harness works.
 
 ## Verify
 
