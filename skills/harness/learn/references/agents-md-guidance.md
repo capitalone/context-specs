@@ -36,6 +36,11 @@ path it references exists, cross-links resolve, and it's under the line cap. Wir
 this into `local-checks.sh`/CI so a stale pointer fails the build. This is the same
 "enforce invariants mechanically" instinct turned on the memory files themselves.
 
+> AGENTS.md uses regular `[text](path)` markdown links — **not** wikilinks. The
+> Obsidian-style `[[wikilinks]]` convention is internal to `expert/references/`
+> only; it has its own validator (`check-expert-links.sh`). Keep the two link
+> styles separate so each validator stays simple.
+
 ## Caps (tweakable, enforced by check-agents-md.sh)
 - Root: ≤ 150 lines.
 - Nested: ≤ 80 lines.

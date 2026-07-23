@@ -72,23 +72,28 @@ check would reward).
 - **Structured logging only** — no `console.log(`/`print(` in `src/`.
 - **Naming/format** — migration filenames match `^\d{14}_`.
 - **File-size cap / public-API drift** — `wc -l` ceiling; exports match `openapi.yaml`.
-- **Memory freshness** — `check-agents-md.sh` itself (referenced paths exist).
+- **Memory freshness** — `check-agents-md.sh` (AGENTS.md pointers exist) and
+  `check-expert-links.sh` (Expert wikilinks resolve).
 
 ## What stays prose (NOT a lint)
 Anything needing judgment: "is this the right abstraction?", "prefer composition
-here." Those are `patterns.md` (Expert), or — if pre-emptively load-bearing —
-AGENTS.md. The test: **if pass/fail is unambiguous, lint it; if it needs taste, it
-stays prose.**
+here." Those live in `pattern-<topic>.md` files in the Expert, or — if pre-emptively
+load-bearing — AGENTS.md. The test: **if pass/fail is unambiguous, lint it; if it
+needs taste, it stays prose.**
 
 ## The discipline (avoid overfitting)
 
 A discovered "invariant" can be an incidental pattern, or a quirk of the current
 model's failures rather than a real codebase property. So:
 
-1. **Consensus-gate it** like every `/learn` write.
-2. **Prose first, lint on recurrence.** First sighting → record in `invariants.md`
-   and flag a candidate lint. Same invariant seen across merges → promote to an
-   enforced lint. One occurrence is a pattern; repetition is an invariant.
+1. **Justify it.** In a single inline pass, write a one-line justification citing
+   the diff hunk (file + line range) that motivated this rule. If you can't, drop
+   it. This is the inline replacement for the old consensus gate — same bar,
+   applied by the main agent.
+2. **Prose first, lint on recurrence.** First sighting → record as a new
+   `invariant-<rule>.md` (one rule per file) and flag a candidate lint. Same
+   invariant seen across merges → promote to an enforced lint. One occurrence is
+   a pattern; repetition is an invariant.
 3. **Frame the *reason*.** "Repo→Service imports break the build because layers are
    compiled bottom-up" survives model upgrades; a bare prohibition doesn't.
 4. **The drafted lint MUST pass current main.** Run it against the just-merged code

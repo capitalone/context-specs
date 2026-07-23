@@ -55,8 +55,8 @@ simpler? is this abstraction sound? does the UX feel right?).
   becomes visible — and if the **human** recognizes one worth remembering, capture it
   *with* them in the Expert (or AGENTS.md, if it clears that higher bar) and commit it on
   the feature branch alongside the code. It rides into `main` with the merge, where
-  `/learn` (its **P7**) treats human-authored memory edits in the merged diff as **ground
-  truth to extend, not a proposal to second-guess** — the same path a human's STUCK
+  `/learn` (its **P7**) treats human-authored memory edits in the merged diff as
+  **authoritative — to extend, not second-guess** — the same path a human's STUCK
   correction takes. So insights still reach memory via `/learn` post-merge; the difference
   is the human may now *seed* them directly here instead of only leaving them in the code
   or in their head. (The PRD stays off-limits — fix code and seed memory, never rewrite the
@@ -179,8 +179,8 @@ re-converged (a new "Ready for your review" comment), just evaluate the new stat
 ## Hard nevers
 - **Never write memory *autonomously*.** You don't edit the Expert / AGENTS.md on your own
   initiative — but when the human recognizes a pattern worth keeping, capture it with them
-  and commit it on `feature/<f>`; it reaches memory as ground truth via the merge + `/learn`
-  P7 (E7).
+  and commit it on `feature/<f>`; the merge carries it in, and `/learn` treats it as
+  authoritative (P7 / E7).
 - **Never rehash the bot's mechanical findings.** Ingest, summarize, move on (E3).
 - **Never auto-merge or auto-close.** Both require the human's explicit go-ahead (E9).
 - **Never hand work back to the loop.** No `CHANGES_REQUESTED`, no reviewer ping — if a

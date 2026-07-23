@@ -1,11 +1,11 @@
 ---
 name: implement-slice
-description: Implements a single slice with Signal validation and unit tests. Agent-first — invoked by the slice-implementer subagent (under implement-mainspec). No human-in-the-loop; signal validation iterates up to a bounded `max_signal_iterations` (default 3) before reporting FAILURE.
+description: Implements a single slice with unit tests and a Reflect step. Agent-first — invoked by the slice-implementer subagent (under implement-mainspec). No human-in-the-loop.
 ---
 
 # Implement Slice
 
-Executes a single slice with Signal validation and unit tests. Agent-first: invoked by the `slice-implementer` subagent in a worktree the parent orchestrator (`implement-mainspec`) has set up. No human prompts; bounded inner loop.
+Executes a single slice with unit tests and a post-implementation Reflect step. Agent-first: invoked by the `slice-implementer` subagent under the parent orchestrator (`implement-mainspec`). No human prompts.
 
 ## Invocation Contract
 
@@ -13,72 +13,78 @@ This skill is invoked by the `slice-implementer` subagent, not directly by the h
 
 **Inputs:**
 - `slice_path` — absolute path to the slice file (may be outside the working directory).
-- `working_directory` — absolute path to the worktree where work happens.
-- `max_signal_iterations` — cap on the inner signal-fix-retry loop. Default: 3.
+- `working_directory` — absolute path to the feature branch checkout (repo root).
 
 **Outputs (uncommitted, in the working directory):**
 - Implemented code matching the slice's specification.
-- Signal validation completed (passed or skipped per the slice's Signal section).
 - Unit tests created/updated.
+- Optional: edits under `.claude/skills/expert/references/` if Reflect produced a high-bar update.
 
 The parent orchestrator (`implement-mainspec`) handles git (add, commit, push) after this skill exits. Do NOT commit, do NOT run git operations, do NOT create PRs.
 
 **Result reporting (to the calling subagent):**
-- **SUCCESS**: list key files changed, signal status (passed | skipped), tests passing.
-- **FAILURE**: describe what went wrong. Reasons include: `signal_failure` (cap hit), `test_failure` (unit tests red), `implementation_blocked` (spec contradicts the codebase).
+- **SUCCESS**: list key files changed, tests passing, Reflect outcome (no-op | add | edit | delete).
+- **FAILURE**: describe what went wrong. Reasons include: `test_failure` (unit tests red), `implementation_blocked` (spec contradicts the codebase).
 
 ## Workflow
 
 1. **Read slice** - Load the entire slice file into context.
 2. **Create TODO list** - Three items:
    - `{slice-name} - Implement`
-   - `{slice-name} - Signal Validation`
    - `{slice-name} - Unit Tests`
+   - `{slice-name} - Reflect`
 3. **Implement** - Mark in_progress, implement all code specified in the slice.
-4. **Signal validation** - Check the Signal section:
-   - If Signal Skill specified: invoke `skill: "[signal-name]"`, wait for output.
-   - Compare against Expected Behavior.
-   - Fix issues and re-invoke. Track iterations.
-   - If iterations reach `max_signal_iterations` (default 3) without success, return FAILURE with `reason: signal_failure` and the last signal output. Do not loop indefinitely.
-   - If Signal Skill is "None": skip to unit tests.
-5. **Unit tests** - Create/update unit tests for the implemented functionality.
+4. **Unit tests** - Create/update unit tests for the implemented functionality. All tests must pass before proceeding.
+5. **Reflect** - See the Reflection Protocol below.
 6. **Complete** - Mark all TODOs complete, stop.
 
-The working directory is set up freshly by `implement-mainspec` (a per-slice git worktree branched from `feature/<feature>`). There should be no prior partial state to resume from — work as if the slate is clean.
+The working directory is the feature branch checkout. There should be no prior partial state to resume from — work as if the slate is clean.
 
-## Signal Processing
+## Reflection Protocol
 
-Each slice includes a Signal section after the Objective:
+Run only after Implement + Unit Tests are green.
 
-```markdown
-## Signal
+### Step A — Load long-term memory
 
-**Signal Skill:** [signal-skill-name | None]
+Invoke `/expert` so the skill body and its reference files are pulled into your context:
 
-**Expected Behavior:**
-- What should succeed when correctly implemented
 ```
+skill: "expert"
+```
+If absent, Reflect is a no-op. Never fail the slice on missing `/expert`.
 
-### Signal Workflow
+Otherwise, read the reference files that overlap with what this slice touched (architecture area, patterns used, file types modified).
 
-1. After implementing slice code, check the Signal section
-2. If Signal Skill is specified:
-   - Invoke the signal: `skill: "[signal-name]"`
-   - Wait for signal output
-   - Follow the guidance from Signal
-3. If signal indicates success: Continue to unit tests
-4. If signal indicates failure:
-   - Review signal output to identify specific issue
-   - Fix the implementation
-   - Re-invoke signal until success
-5. If Signal Skill is "None": Skip to unit tests
+### Step B — Judge: add, edit, delete, or no-op
+
+You now hold two things:
+1. **Your experience implementing this slice** — what was confusing, what pattern you implemented, where the spec contradicted the actual codebase (already in your context window).
+2. **The current long-term memory** — what `/expert` says about those areas (loaded in Step A).
+
+High bar — default to **no-op** unless you have a strong reason to add, edit, or delete. Use the following table to guide your decision:
+
+| Outcome | When to use |
+|---------|------------|
+| **NO-OP** (default) | Routine work, small adjustments, no contradiction. Prefer this. |
+| **ADD** | A new fact, few-shot example, or procedure the project lacks. Use reference-file prefixes: `how-to-*` / `concept-*` / `pattern-*` / `invariant-*` / `example-*`. |
+| **EDIT** | An existing reference is partially wrong; correct it in place. |
+| **DELETE** | An existing reference contradicts merged code reality. |
+
+Strong signals to act: slice got stuck for many iterations, or the slice spec explicitly contradicted code that already exists. Small deviations are noise — prefer NO-OP.
+
+### Step C — Apply directly (only for add/edit/delete)
+
+- Write the change to `.claude/skills/expert/references/`.
+- If you added or deleted a reference file, update `.claude/skills/expert/SKILL.md`'s one-line index.
+- Do NOT touch `AGENTS.md` — that is owned by `/learn` post-merge.
+- The orchestrator commits these Expert-file changes with the slice and has full authority to resolve any resulting merge conflicts.
 
 ## TODO Structure
 
 ```
 [ ] 1.3-user-auth - Implement
-[ ] 1.3-user-auth - Signal Validation
 [ ] 1.3-user-auth - Unit Tests
+[ ] 1.3-user-auth - Reflect
 ```
 
 ## Guidelines
@@ -86,7 +92,7 @@ Each slice includes a Signal section after the Objective:
 **DON'T:**
 - Use `AskUserQuestion`. No human is in the loop.
 - Implement beyond the slice scope.
-- Proceed with failing signal validation — but also do not exceed `max_signal_iterations`; if the cap is hit, return FAILURE with `reason: signal_failure` and the last signal output.
-- Skip signal validation if specified.
+- Proceed with failing unit tests.
 - Implement dependent slices (that's for implement-mainspec).
 - Run git commands or create PRs — the parent orchestrator handles git.
+- Fail the slice because `/expert` is unavailable or Reflect produced no update.

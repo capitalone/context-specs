@@ -156,14 +156,14 @@ For each candidate finding, classify as **impactful** or **nitpick**:
 - **Impactful** — Would mislead the implementing agent. Examples:
   - Missing or wrong type contracts (interfaces, schemas)
   - Incorrect BEFORE/AFTER file paths
-  - Ambiguous Signal section (no clear validation command)
+  - Ambiguous final-slice Success Criteria (no clear PRD-test command)
   - Missing forward-looking requirements that block downstream slices
   - Security gaps in DO/DON'T examples
   - Wrong file path references
   - Missing slice dependency in the Dependency Map
   - Broken slice DAG (cycle, dangling reference)
   - Slice that contradicts the PRD's definition of done
-  - Slice missing the run-prd-test gate (the final slice's Signal must invoke `./prds/<feature>/run-prd-test.sh` and require exit 0 as the PRD-completion criterion)
+  - Final slice missing Success Criteria (must invoke `./prds/<feature>/run-prd-test.sh` and require exit 0 as the PRD-completion criterion)
 
   **→ Apply the fix.**
 
@@ -197,7 +197,7 @@ Structure:
 ## Subagent consensus
 
 ### 3/3 (Very High Confidence)
-- **[Applied]** Slice 1.2 / Signal section — finding text — fix applied: <description>
+- **[Applied]** Slice 1.2 / Success Criteria — finding text — fix applied: <description>
 - **[Skipped: nitpick]** Slice 2.1 / Wording — finding text — reason for skip
 
 ### 2/3 (High Confidence)

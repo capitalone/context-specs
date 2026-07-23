@@ -123,7 +123,7 @@ git); you write no "handled" bookkeeping file.
   feature worktree (the dispatcher `cd`s into it; there is no print-mode `--cwd`
   flag), when the reviewer has unresolved findings on the PR.
 - **You do NOT track rounds.** The dispatcher owns the counter
-  (`.harness/feedback-rounds-<f>`), increments it before **every** invocation regardless of
+  (`<harness-repo>/state/<env>/feedback-rounds-<f>`), increments it before **every** invocation regardless of
   bucket, and decides when to STUCK. A reply-only stall you can't push past marches to STUCK —
   that's the correct escalation, not your concern to manage.
 - **Completion:** your commits (for Clear) and replies (for the rest). The dispatcher

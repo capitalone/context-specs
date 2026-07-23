@@ -48,13 +48,14 @@ Spec planning starts with the end in mind. You create a mainspec that defines th
 - **Ground entirely in the PRD and codebase** — Operate from `prds/<feature>/prd.md` and the codebase. Do NOT use AskUserQuestion. There is no human in the loop. If the PRD is too ambiguous to ground (contradictions, undefined terms, missing definition of done), follow the Ambiguous PRD handling protocol in the Invocation Contract above.
 - **Research codebase first** - Verify what exists today before planning. Look at specs folder to see what's been done, but verify against actual code since specs may be outdated.
 - **Reference the real codebase** - Ground specs in reality with actual file paths, existing patterns, and current implementations. Show what exists today as context for what should exist tomorrow.
-- **Encode the PRD test as a slice success criterion** — The PRD's `run-prd-test.sh` is the definition of done. The mainspec must include a slice (typically the final one) whose Signal section names the PRD test runner (`./prds/<feature>/run-prd-test.sh`) as the validation command. When this slice completes, `./prds/<feature>/run-prd-test.sh` must exit 0. Document this requirement explicitly in the slice's Objective so the implementing agent does not miss it. The runner is intentionally opaque to spec-planning: it may invoke a unit test, an LLM-as-judge prompt, deterministic shell checks, or any mix — the slice's job is to make it pass, not to assume its internals.
+- **Encode the PRD test as the final slice's Success Criteria** — The PRD's `run-prd-test.sh` is the definition of done. The mainspec must include a final slice whose `## Success Criteria` section names the PRD test runner (`./prds/<feature>/run-prd-test.sh`) and requires it to exit 0. Document this requirement explicitly in the slice's Objective so the implementing agent does not miss it. The runner is intentionally opaque to spec-planning: it may invoke a unit test, an LLM-as-judge prompt, deterministic shell checks, or any mix — the slice's job is to make it pass, not to assume its internals.
 - **Think temporally** - Order mainspecs (which feature comes first?) and slices (which slice enables the next?). Document dependencies clearly.
 - **Right level of detail** - Clear enough for implementation agents to understand intent, but not so detailed you make up features or constrain solutions unnecessarily.
 - **Document forward requirements** - In each slice, capture what future slices will need from the current work. Prevents rework and enables temporal planning.
 - **Focus on WHAT not HOW** - Specs define intent and outcomes, not implementation steps. Use code snippets, exact file paths, and examples for context (see Context Engineering below), but don't write full implementation plans. Paint the picture of WHAT needs to exist and WHY, leaving HOW to the implementation phase.
-- **Auto-invoke experts when triggers match** - Read the experts catalog at start of planning and invoke relevant experts to curate domain-specific context.
-- **Write Signal section into every slice** - Every slice must include a Signal section to indicate how to validate the implementation. If no Signal matches, mark as None.
+- **Consult experts** — Two tiers complement each other:
+  - **`/expert`** (project's long-term memory) — invoke on any non-trivial slice, design question, or architecture decision. Gives you what the project already knows about its own codebase: patterns, invariants, lessons from past slices.
+  - **`/expert-*`** (outside experts) — invoke when a slice touches a shared library, internal platform, or vendor SDK for which an outside expert exists. Read `references/experts.md` to discover what outside experts are available.
 - **Write Slice Dependency Map into every mainspec** - Every mainspec must include a "Slice Dependency Map" section with a `Slice | Depends On | Blocks` table and a Mermaid flowchart visualizing the DAG. This is the single source of truth for slice dependencies.
 
 ## Output Structure
@@ -279,61 +280,39 @@ backend/
 - Workspace-specific package.json: Email dependencies isolated from main backend
 ```
 
-## Expert & Signal Integration
+## Expert Integration
 
-Experts and Signals enhance spec planning by curating domain knowledge (Experts) and defining runtime validation (Signals).
+Experts give planning the right domain context before slice content is written. Two tiers:
 
-### What Are Experts?
+### `/expert` — Project long-term memory
 
-Experts are Agent Skills that provide domain-specific guidance during spec planning. They help curate better context by offering framework-specific patterns, security best practices, and internal library documentation, etc.
+The project's own accumulated knowledge: architecture patterns, invariants, lessons from past slices, naming conventions, where things live. If present, consult it on any non-trivial design or architecture question.
 
-**MUST Read the experts catalog at START of planning:** `references/experts.md`
+**MUST consult at start of planning (if available):** `skill: "expert"`
 
-### What Are Signals?
+Read the skill body + relevant reference files. Use what you learn to:
+- Avoid repeating patterns the project has already encoded
+- Ground BEFORE/AFTER examples in real file paths and current patterns
+- Avoid contradicting known invariants
+- Treat `decision-*` shards as forward-looking **targets**, not current facts —
+  follow the decision's "Until fulfilled" note for whether this feature should
+  advance the direction or stay consistent with today's code, and verify the
+  current state in the code before assuming anything the decision describes
+  already exists
 
-Signals are Agent Skills that provide runtime feedback during implementation. They validate that code works as expected beyond just unit tests passing.
+### `/expert-*` — Outside experts
 
-**MUST Read the signals catalog at START of planning:** `references/signals.md`
+Domain knowledge for shared libraries, internal platforms, and vendor SDKs the project depends on. Not project knowledge — but the project's slices may rely on these.
 
-### How to Use Experts During Planning
+**Read the catalog at start of planning:** `references/experts.md` - this is your inventory for outside experts.
 
-1. Read `references/experts.md` at the start of spec planning
-2. Match triggers - Check if the feature description matches any expert triggers
-3. Auto-invoke when matched - If triggers match, invoke with `skill: "{expert-name}"`
-4. Incorporate guidance - Use expert recommendations to:
-   - Inform BEFORE/AFTER examples with framework-specific patterns
-   - Create DO/DON'T sections based on common pitfalls
-   - Define type contracts that follow framework conventions
+Match triggers — check if the feature description or slice content touches any outside expert's domain. Auto-invoke when matched.
 
-### How to Use Signals When Writing Slices
+Use outside expert guidance to:
+- Inform BEFORE/AFTER examples with framework-specific patterns
+- Create DO/DON'T sections based on common pitfalls
+- Define type contracts that follow framework conventions
 
-1. Read `references/signals.md` at the start of spec planning
-2. For each slice being planned:
-   - Determine if the slice needs runtime validation
-   - Match slice type against signal triggers
-   - Write Signal section into the slice
+### Check availability
 
-### Signal Section Format
-
-Every slice must include a Signal section after the Objective:
-
-```markdown
-# Slice X.Y: Name
-
-## Objective
-
-...
-
-## Signal
-
-**Signal Skill:** {signal-skill-name | None}
-
-**Expected Behavior:**
-- Specific validations for this slice
-- what should succeed when correctly implemented
-
-## BEFORE/AFTER Directory Structure
-[rest of slice...]
-```
-
----
+If `/expert` is absent, skip silently — no fallback needed. If no `/expert-*` triggers match, skip. Never fail planning on expert unavailability.

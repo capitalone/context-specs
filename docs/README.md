@@ -1,71 +1,71 @@
-# Context Specs — the full story
+# Context Specs documentation
 
-This is the long-form documentation for Context Specs. The top-level
-[README](../README.md) is the elevator pitch; this is the book.
+Context Specs is [harness engineering](./concepts/harness-engineering.md) applied to
+building software: you express intent, and a deterministic harness drives a coding
+model all the way to a pull request that is either **ready to merge** or **STUCK
+with a diagnosis**. Over time you improve the *system* — its context, its memory,
+its checks — so more features come back ready and fewer come back stuck.
 
-It's written to be read **in order**. Each chapter ends where the next one
-begins — by the last page you should see why a coding project, run well with
-agents, stops looking like a codebase you type into and starts looking like a
-**harness you tune**.
+New here? The top-level [README](../README.md) is the elevator pitch. For the full
+narrative, read the [overview](./overview.md). Otherwise, jump straight to a concept
+or a task below.
 
-## The through-line
+## Overview
 
-One idea runs under everything here: **the right context at the right time.**
-What enters an agent's context window is the biggest lever you have. Context
-Specs is that lever, pulled at three levels — each one building on the one
-before it:
+- **[How Context Specs works](./overview.md)** — the narrative tour that connects
+  every concept in one reading.
 
-```
-Context engineering          the idea: an agent choosing what enters its window
-        │
-        ▼
-Spec-Driven Development       Layer 1 — the idea, applied to building one feature
-        │
-        ▼
-The agent harness            Layer 2 — the project runs that loop for you, and
-        │                              gets better every merge
-        ▼
-The human loop               Layer 3 — freed from typing, you improve the harness
-        │
-        ▼
-A mindset shift              your project has become a harness; your job is context
-```
+## Core concepts
 
-Each layer is usable without the ones above it. Spec-Driven Development needs no
-harness. The harness needs no human-loop discipline to run. The value compounds
-as you climb — but you can stop on any rung.
+Standalone explanations of each idea. Read in any order; they cross-link.
 
-## The chapters
+- **[Harness engineering](./concepts/harness-engineering.md)** — what a harness is
+  (Agent = Model + Harness), and the discipline the whole system rests on.
+- **[Context engineering](./concepts/context-engineering.md)** — the core lever:
+  the right context in the window at the right time.
+- **[The two-tier architecture](./concepts/two-tier-architecture.md)** — one harness
+  repo driving N environments; the Software 3.0 dividing line.
+- **[The dispatcher](./concepts/the-dispatcher.md)** — the deterministic engine;
+  artifacts as state; a fresh window per step.
+- **[Spec-Driven Development](./concepts/spec-driven-development.md)** — short-term
+  memory: context engineering for one feature.
+- **[Long-term memory](./concepts/long-term-memory.md)** — the Expert, `AGENTS.md`,
+  and lints; how the harness remembers.
+- **[The output contract](./concepts/output-contract.md)** — the runnable definition
+  of done; ready-to-merge vs. STUCK.
+- **[Continuous improvement](./concepts/continuous-improvement.md)** — operating at
+  the system level; the ready-to-merge ratio; the flywheel.
+- **[The human loop](./concepts/the-human-loop.md)** — understand → intent →
+  evaluate; the part only you can do.
 
-1. **[Context engineering](./1-context-engineering.md)** — what it actually is,
-   and why the context window is the scarce resource everything else is fighting
-   over.
-2. **[Spec-Driven Development](./2-spec-driven-development.md)** *(Layer 1)* — how
-   Context Specs applies context engineering to a single feature: experts, specs,
-   temporal slicing, signal, consensus validation. The foundation, usable on its
-   own.
-3. **[The agent harness](./3-the-agent-harness.md)** *(Layer 2)* — file a PRD,
-   walk away, come back to a finished PR. The autonomous loop, and why you can
-   trust a machine to run it unattended.
-4. **[Continuous improvement](./4-continuous-improvement.md)** *(Layer 2)* — how
-   the harness gets better every merge: long-term memory, the four destinations
-   for a learned fact, and lints the agent cannot ship past.
-5. **[The human loop](./5-the-human-loop.md)** *(Layer 3)* — once the machine does
-   the typing, what's left is the part only you can do: Understanding → Intent →
-   Evaluate.
-6. **[The mindset shift](./6-the-mindset-shift.md)** — the payoff. Your project is
-   a harness now. Here's how the way you work changes.
+## How-to guides
 
-### Reference
+Task-oriented steps for getting things done.
 
-- **[Design invariants](./invariants.md)** — the properties the harness holds no
-  matter what crashes, races, or restarts. Read this when you want to understand
-  *why* the machine is safe to leave running. (Optional; you can also hand it to
-  an agent to give it a deeper model of the harness.)
+- **[Create a harness](./how-to/create-a-harness.md)** — `init` your one harness
+  repo.
+- **[Add an environment](./how-to/add-an-environment.md)** — register a project.
+- **[Initialize a project](./how-to/initialize-a-project.md)** — generate the
+  Software 3.0 half with `/env-init`.
+- **[Express intent](./how-to/express-intent.md)** — turn an idea into a PRD +
+  runnable definition of done.
+- **[Run the harness](./how-to/run-the-harness.md)** — start, observe, and stop the
+  loops.
+- **[Unstick a feature](./how-to/unstick-a-feature.md)** — resolve a STUCK by fixing
+  the context first.
+- **[Evaluate a PR](./how-to/evaluate-a-pr.md)** — evaluate *what* was built.
+- **[Improve your project's context](./how-to/improve-context.md)** — the concierge
+  for STUCKs, memory, lints, and evals.
+- **[Update a harness](./how-to/update-a-harness.md)** — pull a new release into
+  your harness, 3-way merging it against your own edits.
 
-## Where the code lives
+## Reference
 
-Everything described here ships as Agent Skills under
-[`skills/`](../skills/). The chapters point at the specific
-skill, script, or reference file that implements each idea, so you can read the
-story and then go read the source.
+- **[The `context-specs` CLI](./reference/cli.md)** — every command, flag, and exit
+  code.
+- **[The pieces](./reference/skills.md)** — the full catalog of CLI commands,
+  dispatchers, and skills.
+- **[State and branches](./reference/state-and-branches.md)** — the branch namespace
+  and on-disk layout.
+- **[Design invariants](./reference/invariants.md)** — the properties that make the
+  harness safe to leave running.

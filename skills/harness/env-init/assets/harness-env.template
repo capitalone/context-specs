@@ -1,0 +1,34 @@
+# .harness/env — this environment's harness configuration.
+#
+# Sourced by the tier-1 dispatcher (<harness-repo>/scripts/poll-and-dispatch.sh
+# and learn-dispatch.sh) on every tick. Committed so a team's checkouts share
+# defaults. Runtime state (retry counters, stuck sentinels, session logs) lives
+# in the harness repo under state/<env>/, not in this repo.
+
+# How many features the harness works in parallel.
+#   1 = single worktree, FIFO (recommended default for a single developer).
+#   2+ = bounded parallelism; each feature gets its own worktree (more disk).
+MAX_WORKTREES=1
+
+# Which PRD branches this harness claims (git refspec glob; * = one component).
+#   prd/<your-slug>/*  = per-dev (default): only your own PRDs, your own quota.
+#   prd/*/*            = shared pool: all harnesses race; atomic rename is safe.
+# Leave unset to use the per-dev default derived from your git email.
+# WATCH_PATTERN=prd/your-slug/*
+
+# Convergence marker. When the reviewer has no Important findings left,
+# REVIEW.md tells it to post a PR comment containing this token; the dispatcher
+# sees it and hands the PR to the human for /evaluate-pr. Must match REVIEW.md.
+# Default (set in the dispatcher) is HARNESS_REVIEW_CLEAN. Set it EMPTY when there
+# is NO reviewer, so the dispatcher converges at PR-open instead of waiting.
+# REVIEW_CLEAN_MARKER=HARNESS_REVIEW_CLEAN   # or: REVIEW_CLEAN_MARKER=   (no reviewer)
+
+# Headless permission posture for the `claude -p` skill subprocesses. A headless
+# session can't show a permission prompt, so it needs a posture or tool calls are
+# denied and the step falsely STUCKs. Default (set in the dispatcher) is:
+#   CLAUDE_PERM_ARGS=( --permission-mode auto )
+# classifier-gated, prompt-free, fail-safe (repeated blocks -> abort -> STUCK).
+# Uncomment to override when `auto` isn't available or wanted — e.g. a Bedrock/
+# Vertex-backed CLI (auto is Anthropic-API only), a claude older than
+# --permission-mode, or to skip the classifier entirely inside the worktree:
+# CLAUDE_PERM_ARGS=( --dangerously-skip-permissions )

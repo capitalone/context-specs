@@ -1,0 +1,144 @@
+# Expert structure
+
+**Hackable seam.** A project may add, rename, or split files. These are the
+defaults. The Expert is the project's *lazy* memory — pulled on demand by `/intent`,
+`/spec-planning`, `/spec-validate`, and `/implement-*` via the catalog, or read
+directly.
+
+The Expert is a **flat directory of many small, topic-focused files**, each named
+by a prefix that tells the agent (and `/learn`) what kind of memory it is. Files
+cross-link to each other with Obsidian-style `[[wikilinks]]` so an agent reading
+one file can discover related context by following links. `SKILL.md` is the
+**index**: one line per reference file plus a short note about the link convention.
+
+```
+.claude/skills/expert/
+├── SKILL.md                            # INDEX: one-line description per reference
+└── references/
+    ├── how-to-run-the-project.md       # procedural SOP
+    ├── how-to-validate.md              # procedural SOP
+    ├── how-to-e2e-test.md              # procedural SOP (setup, exercise, teardown)
+    ├── concept-architecture.md         # semantic
+    ├── concept-core-files.md           # semantic
+    ├── pattern-<topic>.md              # soft prefer/avoid (judgment)
+    ├── invariant-<rule>.md             # one hard rule per file
+    ├── example-<scenario>.md           # past trace, cited from a real sha
+    └── decision-<slug>.md              # forward-looking direction, not yet in code
+```
+
+## The six prefixes
+
+Each fact `/learn` decides to remember lands in exactly one prefixed file. The
+filename slug is the topic; the prefix is the *kind* of memory.
+
+- **`how-to-<verb-noun>.md` — procedural.** A sequence of steps a contributor (or
+  agent) follows. Imperative voice. Answers "How do I X?" Examples:
+  `how-to-run-the-project.md`, `how-to-validate.md`, `how-to-e2e-test.md`,
+  `how-to-add-a-feature.md`. Setup/teardown belongs inside the relevant how-to.
+
+- **`concept-<topic>.md` — semantic (nouns).** The shape of the system, a model,
+  a definition. Declarative voice. Answers "What is X?" Examples:
+  `concept-architecture.md`, `concept-core-files.md`, `concept-routing.md`.
+
+- **`pattern-<topic>.md` — semantic (soft rules).** A DO/DON'T that requires
+  judgment. Has counterexamples. Cannot be mechanically checked. Example:
+  `pattern-error-handling.md` ("prefer typed errors at boundaries; raw exceptions
+  fine inside a module").
+
+- **`invariant-<rule>.md` — semantic (hard rules).** A single rule the codebase
+  upholds, mechanically checkable in principle. **One rule per file.** Filename
+  is the rule. Example: `invariant-no-repo-imports-service.md`. The highest-value
+  invariants get drafted as lints (see `invariant-discovery.md`).
+
+- **`example-<scenario>.md` — episodic.** A concrete past trace — a real PR or
+  merge, input → reasoning → output. Cited from a real sha. Never synthetic.
+  Acts as a few-shot demonstration. Example:
+  `example-added-search-endpoint-2024-q3.md`.
+
+- **`decision-<slug>.md` — forward-looking (direction).** A choice about where the
+  project is *heading* that the code may not reflect yet: an adopted architecture
+  direction, a migration in progress, a convention for new code. Unlike
+  `pattern-*` (which the code already follows), a decision is prescriptive and
+  aspirational. It carries an **Until fulfilled:** note — guidance for work in the
+  area before the decision is realized (what advances it vs. what stays consistent
+  with current code). No status field: the file's *existence* means adopted. When
+  the code catches up, `/learn` promotes it to a `concept-`/`pattern-` fact and
+  deletes the decision; if abandoned or reversed, `/improve-context` retires it.
+  Example: `decision-event-source-the-ledger.md`.
+
+The split exists so an agent reading the SKILL.md index can ask one question of
+each file ("does this topic apply now?") and open only what's relevant — instead
+of paging through a 500-line `patterns.md` for one fact.
+
+## Wikilinks between reference files
+
+Reference files cross-link to each other with **Obsidian-style `[[wikilinks]]`**:
+two square brackets around the *basename of another file in `references/`*, no
+extension, no path.
+
+```markdown
+The e2e flow stands up the test DB; see [[how-to-run-the-project]] for the
+non-test boot path, and [[invariant-no-repo-imports-service]] for why the
+fixture loader lives in `test/` and not `repo/`.
+```
+
+Resolution: `[[name]]` → `references/name.md`. The agent already knows how to
+traverse these — wikilinks are a near-universal convention.
+
+`scripts/check-expert-links.sh` mechanically validates every wikilink resolves
+to a file in the same directory. Broken links fail the PR. See
+`wikilink-convention.md` for the formal spec.
+
+> AGENTS.md does **not** use wikilinks. It uses regular `[text](path)` markdown
+> links so `check-agents-md.sh` keeps working unchanged. Wikilinks are an
+> internal Expert-only convention.
+
+## SKILL.md as the index
+
+`SKILL.md` is generated by `/learn` and is a thin **catalog**, not a knowledge
+file. Body:
+
+1. A one-paragraph header naming the project and stating the wikilink convention.
+2. A table: `file | one-line description`. One row per reference file in the
+   directory.
+
+That's it. An agent reads the index, decides which references look relevant to
+the task at hand, opens those, then follows wikilinks from there.
+
+The front-matter `description` ends with `(project)` and lists triggers so the
+catalog can activate the Expert during the SDD phases.
+
+## Bootstrap / `--rebuild`
+
+On a fresh project (no Expert) or when invoked with `--rebuild`, seed a small
+**minimum viable Expert** by scanning committed code. Bias toward fewer, broader
+files; the incremental post-merge path will split them later when topics get
+specific.
+
+**Always-seed (5 files):**
+
+1. `how-to-run-the-project.md` — derived from `package.json` / `Makefile` /
+   `pyproject.toml` / equivalent entry-points.
+2. `how-to-validate.md` — derived from `scripts/local-checks.sh` and CI config.
+3. `how-to-add-a-feature.md` — the SDD skill chain order for this project.
+4. `concept-architecture.md` — module layering from the directory scan.
+5. `concept-core-files.md` — key files and abstractions with paths.
+
+**Conditionally-seed (only on clear visible signal):**
+
+- `how-to-e2e-test.md` — if end-to-end tests exist.
+- `concept-verification.md` — if testing/CI is non-trivial enough to warrant a
+  separate file from `how-to-validate.md`.
+- One `invariant-<rule>.md` per rule the code *visibly* upholds. Skip on
+  uncertainty; let post-merge discovery promote them.
+- `pattern-*.md` — **default to zero on bootstrap.** Patterns emerge from
+  recurring evidence across merges, not from one snapshot.
+- `example-*.md` — **zero on bootstrap.** Episodic memory needs real past
+  experiences, not synthetic ones.
+- `decision-*.md` — **zero on bootstrap.** Decisions come from a human stating
+  direction, never from a code scan. `/improve-context` seeds them when the
+  developer has direction to record.
+
+**Soft cap: ~15 files total** on bootstrap. If the scan suggests more, fold
+related items into one `concept-*.md` and let `/learn` split it later when a
+topic genuinely warrants its own file.

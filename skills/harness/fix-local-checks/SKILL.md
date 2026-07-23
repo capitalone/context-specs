@@ -57,8 +57,8 @@ whitespace`. Push. The dispatcher re-runs the gate next tick to confirm.
 Make whatever honest partial progress you can, commit it, and exit. **Do not cheat
 to force a green.** The dispatcher's counter will eventually reach `LOCAL_CHECKS_CAP`
 and hand the feature to a human via STUCK — which is the **correct** outcome for a
-failure you can't honestly resolve. The human gets the failing output and the
-diagnosis-first checklist; their job is to find the context defect first.
+failure you can't honestly resolve. The human gets the failing output and a
+pointer to `/improve-context`; their job is to find the context defect first.
 
 ## You may NEVER silence a check
 
@@ -88,7 +88,7 @@ decision. The ability to skip is the human's, never yours.
   feature worktree (the dispatcher `cd`s into it; there is no print-mode `--cwd`
   flag), after the auto-fix pass left the gate red.
 - **You do NOT track rounds.** The dispatcher owns the counter
-  (`.harness/local-check-attempts-<f>`) and decides when to STUCK. You do one focused
+  (`<harness-repo>/state/<env>/local-check-attempts-<f>`) and decides when to STUCK. You do one focused
   pass per invocation.
 - **Completion:** your commit + push. The dispatcher re-runs `local-checks.sh` next
   tick; if green it moves to PR, if red it re-invokes you (or STUCKs at cap).
@@ -102,4 +102,4 @@ decision. The ability to skip is the human's, never yours.
   `local-checks.sh`, `scripts/lints/*`.
 - **Never refactor or add features.** Touch only what the failing checks require.
 - **Never commit a fake green.** A check that passes because you suppressed it is a
-  regression dressed as a fix — and `/learn` would learn it as ground truth.
+  regression dressed as a fix — and `/learn` would learn it as fact.
