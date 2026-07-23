@@ -87,25 +87,6 @@ flowchart LR
 `context-specs status` shows every project's features and phases; `run` does one
 foreground pass; `logs <env> -f` follows the loop; `doctor` checks the wiring.
 
-## Your harness, upgraded without losing your edits
-
-`init` **vendors** the skills, subagents and dispatchers into your own git repo —
-no fork, no `upstream` remote. Editing them is the point: that is how the harness
-gets better at *your* projects.
-
-So upgrades have to merge, not overwrite:
-
-```bash
-npm i -g context-specs@latest
-context-specs update      # 3-way merges the release against your edits
-> /update-harness         # resolves what a merge tool can't judge
-```
-
-Most files resolve mechanically. What is left over — genuine conflicts, and prose
-that merged cleanly but may no longer *mean* one thing — goes to a skill that
-reconstructs why your edit exists from your own git history and recommends a call.
-See [Update a harness](./docs/how-to/update-a-harness.md).
-
 ## Specs are short-term memory
 
 Most SDD tooling stops at the spec: a human drives the spec, then a human drives the
@@ -125,9 +106,37 @@ code is green, the agent writes back only what is genuinely durable. The bar is 
 most slices reflect nothing. Keeping the two separate is what lets each do its job:
 specs stay lean and disposable, long-term memory stays curated and permanent.
 
-That pairing is the flywheel. [`/learn`](./docs/concepts/long-term-memory.md) runs
-after a feature merges and opens its *own* PR against your memory — you review that
-too — so the next feature is planned by a harness that knows more than it did.
+## Long-term memory & continuous learning
+
+Specs are disposable; **long-term memory** is what the harness keeps — the durable,
+cross-feature knowledge that plans every feature, and it lives in two shapes. The
+**Expert** is the dense knowledge: architecture, patterns, how things get verified
+here — pulled into a window only when **spec-planning** (your short-term memory)
+consults it. **`AGENTS.md`** is loaded into every agent that touches a folder, so it
+stays a short map that *points into* the Expert rather than duplicating it. And the
+most durable thing a project owns is the set of **lints** it grows — a learned rule
+turned into a script the agent *cannot ship past*, with the fix in the error message.
+
+This memory is **yours** — it is how you gain leverage. Two automated helpers keep it
+fed as you ship: **Reflect** writes back only what a green slice proved durable, and
+[`/learn`](./docs/concepts/long-term-memory.md) reads each *merged* diff and opens its
+own PR against your memory — adding what the merge taught, retiring what it
+invalidated. Both are good, and both run without you.
+
+But the highest-leverage move is the one you drive yourself:
+[`/improve-context`](./docs/how-to/improve-context.md). The automated helpers file in
+behind the merged code; when you sit down with `/improve-context` you can *steer* —
+going deep on the Expert and on **agent legibility**, making the environment navigable
+and the intent unambiguous, so every future plan starts from a better place than a diff
+alone could teach. That is where your leverage compounds fastest.
+
+That is the flywheel. Every feature that merges leaves the harness knowing a little
+more than it did, so the next feature is planned by a smarter harness. Which circles
+back to the opening claim:
+
+**A codebase you type into is a constant cost. A harness you tune is an appreciating
+asset — each feature leaves it a little more capable of building the next one. Massive
+leverage.**
 
 ## Documentation
 
